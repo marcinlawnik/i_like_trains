@@ -2,8 +2,8 @@ use Mix.Config
 
 # Configure your database
 config :i_like_trains, ILikeTrains.Repo,
-  username: "postgres",
-  password: "postgres",
+  username: "root",
+  password: "toor",
   database: "i_like_trains_dev",
   hostname: "localhost",
   show_sensitive_data_on_connection_error: true,
