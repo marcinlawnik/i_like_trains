@@ -1,5 +1,10 @@
 # ILikeTrains
 
+The goal of the project is to implement a *Ticket To Ride* game in Elixir and a frontend
+using Liveview.
+
+# Setup
+
 To start your Phoenix server:
 
   * Install dependencies with `mix deps.get`
