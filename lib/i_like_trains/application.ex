@@ -9,7 +9,7 @@ defmodule ILikeTrains.Application do
     # List all child processes to be supervised
     children = [
       # Start the Ecto repository
-      ILikeTrains.Repo,
+      # ILikeTrains.Repo,
       # Start the endpoint when the application starts
       ILikeTrainsWeb.Endpoint
       # Starts a worker by calling: ILikeTrains.Worker.start_link(arg)
