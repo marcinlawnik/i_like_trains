@@ -4,7 +4,7 @@ defmodule ILikeTrainsWeb.Router do
   pipeline :browser do
     plug :accepts, ["html"]
     plug :fetch_session
-    plug :fetch_flash
+    plug :fetch_live_flash
     plug :protect_from_forgery
     plug :put_secure_browser_headers
   end
@@ -17,6 +17,7 @@ defmodule ILikeTrainsWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :index
+    get "/game", GameController, :index
   end
 
   # Other scopes may use custom stacks.
