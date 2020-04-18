@@ -13,7 +13,7 @@ defmodule ILikeTrains.Session do
   def get(conn) do
     case get_session(conn, :name) do
       nil -> {:error, :not_found}
-      name -> {:ok, %{"name" => name}}
+      name -> {:ok, %{"player" => PlayerStore.get(name)}}
     end
   end
 

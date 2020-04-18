@@ -1,26 +1,24 @@
 defmodule ILikeTrainsWeb.Live.Game do
+  alias ILikeTrains.{GameServer, Lobby, Game}
+
   use Phoenix.LiveView
 
-  def mount(_params, %{"name" => name}, socket) do
-    IO.puts("name: #{name}")
-    {:ok, assign(socket, :val, 0)}
+  def mount(_params, %{"player" => player}, socket) do
+    # subscribe to game room
+    state = GameServer.join(player)
+
+    {:ok, assign(socket, %{state: state, player: player})}
   end
 
-  def handle_event("inc", _, socket) do
-    {:noreply, update(socket, :val, &(&1 + 1))}
+  def render(%{state: state} = assigns) do
+    case state do
+      %Lobby{} -> ILikeTrainsWeb.GameView.render("lobby.html", assigns)
+      %Game{} -> ILikeTrainsWeb.GameView.render("game.html", assigns)
+    end
   end
 
-  def handle_event("dec", _, socket) do
-    {:noreply, update(socket, :val, &(&1 - 1))}
-  end
-
-  def render(assigns) do
-    ~L"""
-    <div>
-      <h1>The count is: <%= @val %></h1>
-      <button phx-click="dec">-</button>
-      <button phx-click="inc">+</button>
-    </div>
-    """
+  def handle_event("ready", _, %{assigns: %{player: player}} = socket) do
+    new_state = GameServer.ready(player)
+    {:noreply, assign(socket, %{state: new_state})}
   end
 end

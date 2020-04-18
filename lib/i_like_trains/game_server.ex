@@ -1,13 +1,20 @@
 defmodule ILikeTrains.GameServer do
+  alias ILikeTrains.{Lobby, Game, Player, GameServer}
+
   use GenServer
 
   ## Client API
 
-  @doc """
-  Starts the game.
-  """
-  def start_link(opts) do
-    GenServer.start_link(__MODULE__, :ok, opts)
+  def start_link(_opts) do
+    GenServer.start_link(__MODULE__, :ok, name: __MODULE__)
+  end
+
+  def join(player) do
+    GenServer.call(GameServer, {:join, player})
+  end
+
+  def ready(player) do
+    GenServer.call(GameServer, {:ready, player})
   end
 
   @doc """
@@ -30,7 +37,26 @@ defmodule ILikeTrains.GameServer do
 
   @impl true
   def init(:ok) do
-    {:ok, %{}}
+    {:ok, %Lobby{}}
+  end
+
+  # TODO: fallback for Game struct - game in progress
+  @impl true
+  def handle_call({:join, %Player{} = player}, _from, %Lobby{} = state) do
+    new_state = Lobby.join(state, player)
+    {:reply, new_state, new_state}
+  end
+
+  @impl true
+  def handle_call({:ready, %Player{} = player}, _from, %Lobby{} = state) do
+    new_state = Lobby.ready(state, player)
+
+    if Lobby.all_ready?(new_state) do
+      new_game = %Game{players: new_state.players}
+      {:reply, new_game, new_game}
+    else
+      {:reply, new_state, new_state}
+    end
   end
 
   # @impl true

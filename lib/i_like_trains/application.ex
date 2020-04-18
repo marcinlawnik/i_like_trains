@@ -2,7 +2,7 @@ defmodule ILikeTrains.Application do
   # See https://hexdocs.pm/elixir/Application.html
   # for more information on OTP Applications
   @moduledoc false
-  alias ILikeTrains.PlayerStore
+  alias ILikeTrains.{PlayerStore, GameServer}
 
   use Application
 
@@ -15,8 +15,8 @@ defmodule ILikeTrains.Application do
       ILikeTrainsWeb.Endpoint,
       # Starts a worker by calling: ILikeTrains.Worker.start_link(arg)
       # {ILikeTrains.Worker, arg},
-      PlayerStore
-      # ILikeTrains.GameServer
+      PlayerStore,
+      GameServer
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
