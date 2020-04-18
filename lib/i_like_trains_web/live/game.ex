@@ -3,10 +3,14 @@ defmodule ILikeTrainsWeb.Live.Game do
 
   use Phoenix.LiveView
 
+  @topic "pub_sub_game_topic"
+  @state_update "state_update"
+
   def mount(_params, %{"player" => player}, socket) do
-    # subscribe to game room
+    ILikeTrainsWeb.Endpoint.subscribe(@topic)
     state = GameServer.join(player)
 
+    pub_state(state)
     {:ok, assign(socket, %{state: state, player: player})}
   end
 
@@ -19,6 +23,24 @@ defmodule ILikeTrainsWeb.Live.Game do
 
   def handle_event("ready", _, %{assigns: %{player: player}} = socket) do
     new_state = GameServer.ready(player)
+
+    pub_state(new_state)
     {:noreply, assign(socket, %{state: new_state})}
+  end
+
+  # TODO: remove dummy game logic
+  def handle_event("inc", _, socket) do
+    new_state = GameServer.inc()
+
+    pub_state(new_state)
+    {:noreply, assign(socket, %{state: new_state})}
+  end
+
+  def handle_info(%{event: @state_update, payload: state}, socket) do
+    {:noreply, assign(socket, %{state: state})}
+  end
+
+  defp pub_state(state) do
+    ILikeTrainsWeb.Endpoint.broadcast_from(self(), @topic, @state_update, state)
   end
 end

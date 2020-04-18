@@ -17,21 +17,10 @@ defmodule ILikeTrains.GameServer do
     GenServer.call(GameServer, {:ready, player})
   end
 
-  @doc """
-  Looks up the bucket pid for `name` stored in `server`.
-
-  Returns `{:ok, pid}` if the bucket exists, `:error` otherwise.
-  """
-  # def lookup(server, name) do
-  #   GenServer.call(server, {:lookup, name})
-  # end
-
-  @doc """
-  Ensures there is a bucket associated with the given `name` in `server`.
-  """
-  # def create(server, name) do
-  #   GenServer.cast(server, {:create, name})
-  # end
+  # TODO: remove dummy game logic
+  def inc() do
+    GenServer.call(GameServer, :inc)
+  end
 
   ## GenServer Callbacks
 
@@ -40,32 +29,34 @@ defmodule ILikeTrains.GameServer do
     {:ok, %Lobby{}}
   end
 
-  # TODO: fallback for Game struct - game in progress
   @impl true
   def handle_call({:join, %Player{} = player}, _from, %Lobby{} = state) do
-    new_state = Lobby.join(state, player)
-    {:reply, new_state, new_state}
+    new_lobby = Lobby.join(state, player)
+    {:reply, new_lobby, new_lobby}
+  end
+
+  @impl true
+  def handle_call({:join, %Player{} = _player}, _from, %Game{} = state) do
+    # TODO: check if player in game
+    {:reply, state, state}
   end
 
   @impl true
   def handle_call({:ready, %Player{} = player}, _from, %Lobby{} = state) do
-    new_state = Lobby.ready(state, player)
+    new_lobby = Lobby.ready(state, player)
 
-    if Lobby.all_ready?(new_state) do
-      new_game = %Game{players: new_state.players}
+    if Lobby.all_ready?(new_lobby) do
+      new_game = Game.new(new_lobby.players)
       {:reply, new_game, new_game}
     else
-      {:reply, new_state, new_state}
+      {:reply, new_lobby, new_lobby}
     end
   end
 
-  # @impl true
-  # def handle_call({:atom, _}, _from, state) do
-  #   {:reply, reply_value, state}
-  # end
-
-  # @impl true
-  # def handle_cast({:atom, _}, state) do
-  #   {:noreply, state}
-  # end
+  # TODO: remove dummy game logic
+  @impl true
+  def handle_call(:inc, _from, %Game{} = state) do
+    new_game = Game.inc(state)
+    {:reply, new_game, new_game}
+  end
 end
