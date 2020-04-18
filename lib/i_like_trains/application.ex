@@ -2,6 +2,7 @@ defmodule ILikeTrains.Application do
   # See https://hexdocs.pm/elixir/Application.html
   # for more information on OTP Applications
   @moduledoc false
+  alias ILikeTrains.PlayerStore
 
   use Application
 
@@ -11,9 +12,11 @@ defmodule ILikeTrains.Application do
       # Start the Ecto repository
       # ILikeTrains.Repo,
       # Start the endpoint when the application starts
-      ILikeTrainsWeb.Endpoint
+      ILikeTrainsWeb.Endpoint,
       # Starts a worker by calling: ILikeTrains.Worker.start_link(arg)
       # {ILikeTrains.Worker, arg},
+      PlayerStore
+      # ILikeTrains.GameServer
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

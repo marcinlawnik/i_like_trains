@@ -17,6 +17,7 @@ defmodule ILikeTrainsWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :index
+    post "/", PageController, :join
     get "/game", GameController, :index
   end
 

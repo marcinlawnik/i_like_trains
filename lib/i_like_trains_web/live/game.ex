@@ -1,7 +1,8 @@
 defmodule ILikeTrainsWeb.Live.Game do
   use Phoenix.LiveView
 
-  def mount(_params, _session, socket) do
+  def mount(_params, %{"name" => name}, socket) do
+    IO.puts("name: #{name}")
     {:ok, assign(socket, :val, 0)}
   end
 
