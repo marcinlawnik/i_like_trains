@@ -7,8 +7,10 @@ defmodule ILikeTrainsWeb.Endpoint do
   @session_options [
     store: :cookie,
     key: "_i_like_trains_key",
-    signing_salt: "N8YNH9+V"
+    signing_salt: "XKGPMGTmFcaH33okpcqu6dRz3G7ANkju"
   ]
+
+  socket "/live", Phoenix.LiveView.Socket, websocket: [connect_info: [session: @session_options]]
 
   socket "/socket", ILikeTrainsWeb.UserSocket,
     websocket: true,

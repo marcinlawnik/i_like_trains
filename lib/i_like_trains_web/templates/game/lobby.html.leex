@@ -1,0 +1,10 @@
+<div>
+    <h1>Lobby</h1>
+    <%= for {name, _} <- @state.players do %>
+        <p>
+            <span><%= name %></span>
+            <span>ready: <%= if Enum.any?(@state.ready, fn n -> n === name end) do "Ready" else "Not ready" end %></span>
+        </p>
+    <% end %>
+    <button phx-click="ready">ready</button>
+</div>

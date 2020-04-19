@@ -24,6 +24,7 @@ defmodule ILikeTrainsWeb do
       import Plug.Conn
       import ILikeTrainsWeb.Gettext
       alias ILikeTrainsWeb.Router.Helpers, as: Routes
+      import Phoenix.LiveView.Controller
     end
   end
 
@@ -42,6 +43,7 @@ defmodule ILikeTrainsWeb do
       import ILikeTrainsWeb.ErrorHelpers
       import ILikeTrainsWeb.Gettext
       alias ILikeTrainsWeb.Router.Helpers, as: Routes
+      import Phoenix.LiveView.Helpers
     end
   end
 
@@ -50,6 +52,7 @@ defmodule ILikeTrainsWeb do
       use Phoenix.Router
       import Plug.Conn
       import Phoenix.Controller
+      import Phoenix.LiveView.Router
     end
   end
 

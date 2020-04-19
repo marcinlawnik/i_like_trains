@@ -16,7 +16,7 @@ config :i_like_trains, ILikeTrainsWeb.Endpoint,
   secret_key_base: "e8CRT4mnSP4IA+4LPXOQzOUEkjZVUQ/Y4M4p2jmrEtHbK/Ws7VAN7Z9+l5IRbBuT",
   render_errors: [view: ILikeTrainsWeb.ErrorView, accepts: ~w(html json)],
   pubsub: [name: ILikeTrains.PubSub, adapter: Phoenix.PubSub.PG2],
-  live_view: [signing_salt: "RzCZvbF9"]
+  live_view: [signing_salt: "cEewUwcTi1r4G1vaSmqVG/FAfEP0ecuj"]
 
 # Configures Elixir's Logger
 config :logger, :console,

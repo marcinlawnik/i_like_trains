@@ -2,6 +2,7 @@ defmodule ILikeTrains.Application do
   # See https://hexdocs.pm/elixir/Application.html
   # for more information on OTP Applications
   @moduledoc false
+  alias ILikeTrains.{PlayerStore, GameServer}
 
   use Application
 
@@ -9,11 +10,13 @@ defmodule ILikeTrains.Application do
     # List all child processes to be supervised
     children = [
       # Start the Ecto repository
-      ILikeTrains.Repo,
+      # ILikeTrains.Repo,
       # Start the endpoint when the application starts
-      ILikeTrainsWeb.Endpoint
+      ILikeTrainsWeb.Endpoint,
       # Starts a worker by calling: ILikeTrains.Worker.start_link(arg)
       # {ILikeTrains.Worker, arg},
+      PlayerStore,
+      GameServer
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

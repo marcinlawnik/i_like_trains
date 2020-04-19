@@ -1,0 +1,6 @@
+<div>
+    <h1>Game</h1>
+    <p>count: <%= @state.count %></p>
+    <p>turn: <%= @state.turn %></p>
+    <button phx-click="inc" <%= if @state.turn !== @player.name do "disabled" else "" end %>>increment</button>
+</div>
