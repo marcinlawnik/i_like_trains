@@ -3,7 +3,7 @@ use Mix.Config
 # Configure your database
 config :i_like_trains, ILikeTrains.Repo,
   username: "root",
-  password: "toor",
+  password: "",
   database: "i_like_trains_dev",
   hostname: "localhost",
   show_sensitive_data_on_connection_error: true,

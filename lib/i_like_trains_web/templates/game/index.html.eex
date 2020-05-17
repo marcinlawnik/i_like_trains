@@ -1,6 +1,0 @@
-<%=
-  live_render(@conn, ILikeTrainsWeb.Live.Game,
-    session: @session,
-    container: {:div, [class: "game"]}
-  )
-%>
