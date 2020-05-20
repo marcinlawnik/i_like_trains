@@ -1,7 +1,7 @@
 defmodule ILikeTrains.Player do
   alias ILikeTrains.Player
 
-  defstruct [:name]
+  defstruct name: "", cards: []
 
   def new(name) do
     %Player{name: name}
