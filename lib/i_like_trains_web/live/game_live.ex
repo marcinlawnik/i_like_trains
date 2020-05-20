@@ -9,12 +9,11 @@ defmodule ILikeTrainsWeb.GameLive do
   @impl true
   def mount(_params, %{"name" => name}, socket) do
     # TODO: clause when name is not present in session -> redirect to login
-    player = PlayerStore.get(name)
     ILikeTrainsWeb.Endpoint.subscribe(@topic)
-    state = GameServer.join(player)
+    state = GameServer.join(name)
 
     pub_state(state)
-    {:ok, assign(socket, %{state: state, player: player})}
+    {:ok, assign(socket, %{state: state, name: name})}
   end
 
   @impl true
@@ -26,9 +25,20 @@ defmodule ILikeTrainsWeb.GameLive do
   end
 
   @impl true
-  def handle_event("ready", _, %{assigns: %{player: player}} = socket) do
-    new_state = GameServer.ready(player)
+  def handle_event("ready", _, %{assigns: %{name: name}} = socket) do
+    new_state = GameServer.ready(name)
+    pub_state(new_state)
+    {:noreply, assign(socket, %{state: new_state})}
+  end
 
+  def handle_event("take_card_board", %{"index" => index}, socket) do
+    new_state = GameServer.take_card_board(index)
+    pub_state(new_state)
+    {:noreply, assign(socket, %{state: new_state})}
+  end
+
+  def handle_event("take_card_deck", _, socket) do
+    new_state = GameServer.take_card_deck()
     pub_state(new_state)
     {:noreply, assign(socket, %{state: new_state})}
   end
@@ -36,7 +46,6 @@ defmodule ILikeTrainsWeb.GameLive do
   # TODO: remove dummy game logic
   def handle_event("inc", _, socket) do
     new_state = GameServer.inc()
-
     pub_state(new_state)
     {:noreply, assign(socket, %{state: new_state})}
   end

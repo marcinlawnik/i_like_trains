@@ -1,6 +1,36 @@
+<%
+    player = Map.get(@state.players, @name)
+    my_turn = @state.turn === @name
+    one_more_card = @state.state === "one_more_card"
+%>
 <div>
     <h1>Game</h1>
     <p>count: <%= @state.count %></p>
     <p>turn: <%= @state.turn %></p>
-    <button phx-click="inc" <%= if @state.turn !== @player.name do "disabled" else "" end %>>increment</button>
+    <button phx-click="inc" <%= if !my_turn do "disabled" else "" end %>>increment</button>
+
+    <p>my name: <%= player.name %></p>
+    <div>
+        <p>my cards:</p>
+        <%= for %{color: color} <- player.cards do %>
+            <button><%= color %></button>
+        <% end %>
+    </div>
+
+    <div>
+        <p>cards_board:</p>
+        <button
+            phx-click="take_card_deck"
+            <%= if !my_turn do "disabled" else "" end %>>
+                draw deck
+        </button>
+        <%= for {%{color: color}, index} <- Enum.with_index(@state.cards_board) do %>
+            <button
+                phx-click="take_card_board"
+                phx-value-index="<%= index %>"
+                <%= if !my_turn or (one_more_card and color === "joker") do "disabled" else "" end %>>
+                    <%= color %>
+            </button>
+        <% end %>
+    </div>
 </div>
