@@ -2,6 +2,12 @@
     player = Map.get(@state.players, @name)
     my_turn = @state.turn === @name
     one_more_card = @state.state === "one_more_card"
+    route_available = fn %{color: color, cost: cost, claimable: claimable} ->
+        case {my_turn, one_more_card, claimable, Map.get(@available_cards, color) >= cost} do
+            {true, false, true, true} -> true
+            _ -> false
+        end
+    end
 %>
 <div>
     <h1>Game</h1>
@@ -9,11 +15,16 @@
     <p>turn: <%= @state.turn %></p>
     <button phx-click="inc" <%= if !my_turn do "disabled" else "" end %>>increment</button>
 
-    <p>my name: <%= player.name %></p>
     <div>
-        <p>my cards:</p>
-        <%= for %{color: color} <- player.cards do %>
-            <button><%= color %></button>
+        <p>routes:</p>
+        <%= for %{id: id, places: [from, to], color: color, cost: cost, claimable: claimable, claimed_by: claimed_by} = route <- @state.routes do %>
+            <button
+                phx-click="claim_route"
+                phx-value-id="<%= id %>"
+                <%= if route_available.(route) do "" else "disabled" end %>
+                >
+                    <%= from %>-<%= to %> | <%= color %> | <%= cost %> | <%= claimed_by %>
+            </button>
         <% end %>
     </div>
 
@@ -28,9 +39,18 @@
             <button
                 phx-click="take_card_board"
                 phx-value-index="<%= index %>"
-                <%= if !my_turn or (one_more_card and color === "joker") do "disabled" else "" end %>>
+                <%= if !my_turn or (one_more_card and color === "joker") do "disabled" else "" end %>
+                >
                     <%= color %>
             </button>
+        <% end %>
+    </div>
+
+    <p>my name: <%= player.name %></p>
+    <div>
+        <p>my cards:</p>
+        <%= for %{color: color} <- player.cards do %>
+            <button><%= color %></button>
         <% end %>
     </div>
 </div>
