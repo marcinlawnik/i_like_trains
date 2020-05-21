@@ -1,5 +1,5 @@
 defmodule ILikeTrainsWeb.GameLive do
-  alias ILikeTrains.{GameServer, PlayerStore, Lobby, Game}
+  alias ILikeTrains.{GameServer, PlayerStore, Lobby, Game, Card}
 
   use ILikeTrainsWeb, :live_view
 
@@ -13,14 +13,22 @@ defmodule ILikeTrainsWeb.GameLive do
     state = GameServer.join(name)
 
     pub_state(state)
-    {:ok, assign(socket, %{state: state, name: name})}
+    {:ok, assign(socket, %{state: state, name: name, available_cards: %{}})}
   end
 
   @impl true
-  def render(%{state: state} = assigns) do
+  def render(%{state: state, name: name} = assigns) do
     case state do
-      %Lobby{} -> Phoenix.View.render(ILikeTrainsWeb.GameView, "lobby.html", assigns)
-      %Game{} -> Phoenix.View.render(ILikeTrainsWeb.GameView, "game.html", assigns)
+      %Lobby{} ->
+        Phoenix.View.render(ILikeTrainsWeb.GameView, "lobby.html", assigns)
+
+      %Game{} ->
+        available_cards = Card.count_by_color(Map.get(state.players, name).cards)
+
+        Phoenix.View.render(ILikeTrainsWeb.GameView, "game.html", %{
+          assigns
+          | available_cards: available_cards
+        })
     end
   end
 
@@ -39,6 +47,12 @@ defmodule ILikeTrainsWeb.GameLive do
 
   def handle_event("take_card_deck", _, socket) do
     new_state = GameServer.take_card_deck()
+    pub_state(new_state)
+    {:noreply, assign(socket, %{state: new_state})}
+  end
+
+  def handle_event("claim_route", %{"id" => id}, socket) do
+    new_state = GameServer.claim_route(id)
     pub_state(new_state)
     {:noreply, assign(socket, %{state: new_state})}
   end

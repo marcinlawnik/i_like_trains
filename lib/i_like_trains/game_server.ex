@@ -25,6 +25,10 @@ defmodule ILikeTrains.GameServer do
     GenServer.call(GameServer, :take_card_deck)
   end
 
+  def claim_route(id) do
+    GenServer.call(GameServer, {:claim_route, id})
+  end
+
   # TODO: remove dummy game logic
   def inc() do
     GenServer.call(GameServer, :inc)
@@ -73,6 +77,12 @@ defmodule ILikeTrains.GameServer do
   @impl true
   def handle_call(:take_card_deck, _from, %Game{} = state) do
     new_game = Game.take_card_deck(state)
+    {:reply, new_game, new_game}
+  end
+
+  @impl true
+  def handle_call({:claim_route, route_id}, _from, %Game{} = state) do
+    new_game = Game.claim_route(state, route_id)
     {:reply, new_game, new_game}
   end
 

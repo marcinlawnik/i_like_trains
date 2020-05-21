@@ -1,18 +1,31 @@
 defmodule ILikeTrains.Game do
-  alias ILikeTrains.{Game, Card, Player}
+  alias ILikeTrains.{Game, Card, Player, Route}
 
   @initial_cards 4
   @card_board_num 5
 
   @state_one_more_card "one_more_card"
 
-  defstruct players: %{}, cards_deck: [], cards_board: [], turn: nil, state: nil, count: 0
+  defstruct players: %{},
+            cards_deck: [],
+            cards_board: [],
+            routes: [],
+            turn: nil,
+            state: nil,
+            count: 0
 
   def new([%Player{name: name} | _] = players) do
     cards = Card.new_deck()
+    routes = Route.get_initial()
     {cards_board, cards_deck} = Card.take_n(cards, @card_board_num)
 
-    %Game{players: players, turn: name, cards_board: cards_board, cards_deck: cards_deck}
+    %Game{
+      players: players,
+      turn: name,
+      routes: routes,
+      cards_board: cards_board,
+      cards_deck: cards_deck
+    }
     |> distribute_cards()
   end
 
@@ -83,6 +96,19 @@ defmodule ILikeTrains.Game do
       _ ->
         %Game{new_game | state: @state_one_more_card}
     end
+  end
+
+  def claim_route(%Game{routes: routes, players: players, turn: turn} = game, route_id) do
+    route_id_int = String.to_integer(route_id)
+    route = Enum.find(routes, fn %Route{id: id} -> id === route_id_int end)
+
+    current_player = Map.get(players, turn)
+    new_cards = Card.remove_n_by_color(current_player.cards, route.color, route.cost)
+    new_players = Map.put(players, turn, %Player{current_player | cards: new_cards})
+
+    routes = Route.claim_route_by_player(routes, route, turn)
+
+    %Game{game | players: new_players, routes: routes, turn: next_turn(players, turn)}
   end
 
   # TODO: remove dummy game logic
