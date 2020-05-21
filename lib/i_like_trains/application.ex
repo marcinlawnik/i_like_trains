@@ -2,19 +2,23 @@ defmodule ILikeTrains.Application do
   # See https://hexdocs.pm/elixir/Application.html
   # for more information on OTP Applications
   @moduledoc false
+
   alias ILikeTrains.{PlayerStore, GameServer}
 
   use Application
 
   def start(_type, _args) do
-    # List all child processes to be supervised
     children = [
       # Start the Ecto repository
       # ILikeTrains.Repo,
-      # Start the endpoint when the application starts
+      # Start the Telemetry supervisor
+      ILikeTrainsWeb.Telemetry,
+      # Start the PubSub system
+      {Phoenix.PubSub, name: ILikeTrains.PubSub},
+      # Start the Endpoint (http/https)
       ILikeTrainsWeb.Endpoint,
-      # Starts a worker by calling: ILikeTrains.Worker.start_link(arg)
-      # {ILikeTrains.Worker, arg},
+      # Start a worker by calling: ILikeTrains.Worker.start_link(arg)
+      # {ILikeTrains.Worker, arg}
       PlayerStore,
       GameServer
     ]

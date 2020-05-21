@@ -7,14 +7,14 @@ defmodule ILikeTrainsWeb.Endpoint do
   @session_options [
     store: :cookie,
     key: "_i_like_trains_key",
-    signing_salt: "XKGPMGTmFcaH33okpcqu6dRz3G7ANkju"
+    signing_salt: "JKtGg6uy"
   ]
-
-  socket "/live", Phoenix.LiveView.Socket, websocket: [connect_info: [session: @session_options]]
 
   socket "/socket", ILikeTrainsWeb.UserSocket,
     websocket: true,
     longpoll: false
+
+  socket "/live", Phoenix.LiveView.Socket, websocket: [connect_info: [session: @session_options]]
 
   # Serve at "/" the static files from "priv/static" directory.
   #
@@ -32,7 +32,12 @@ defmodule ILikeTrainsWeb.Endpoint do
     socket "/phoenix/live_reload/socket", Phoenix.LiveReloader.Socket
     plug Phoenix.LiveReloader
     plug Phoenix.CodeReloader
+    plug Phoenix.Ecto.CheckRepoStatus, otp_app: :i_like_trains
   end
+
+  plug Phoenix.LiveDashboard.RequestLogger,
+    param_key: "request_logger",
+    cookie_key: "request_logger"
 
   plug Plug.RequestId
   plug Plug.Telemetry, event_prefix: [:phoenix, :endpoint]

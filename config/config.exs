@@ -13,10 +13,10 @@ config :i_like_trains,
 # Configures the endpoint
 config :i_like_trains, ILikeTrainsWeb.Endpoint,
   url: [host: "localhost"],
-  secret_key_base: "e8CRT4mnSP4IA+4LPXOQzOUEkjZVUQ/Y4M4p2jmrEtHbK/Ws7VAN7Z9+l5IRbBuT",
-  render_errors: [view: ILikeTrainsWeb.ErrorView, accepts: ~w(html json)],
-  pubsub: [name: ILikeTrains.PubSub, adapter: Phoenix.PubSub.PG2],
-  live_view: [signing_salt: "cEewUwcTi1r4G1vaSmqVG/FAfEP0ecuj"]
+  secret_key_base: "6U2ahpUz7x8xouIKebj9XZtiivWg1Pm8hG/hmCLSqxmK8716ef/iF9fj4oCLNSi+",
+  render_errors: [view: ILikeTrainsWeb.ErrorView, accepts: ~w(html json), layout: false],
+  pubsub_server: ILikeTrains.PubSub,
+  live_view: [signing_salt: "TSO1aj14"]
 
 # Configures Elixir's Logger
 config :logger, :console,
