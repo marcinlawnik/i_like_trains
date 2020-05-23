@@ -3,8 +3,8 @@
     my_turn = @state.turn === @name
     one_more_card = @state.state === "one_more_card"
     route_available = fn %{color: color, cost: cost, claimable: claimable} ->
-        case {my_turn, one_more_card, claimable, Map.get(@available_cards, color) >= cost} do
-            {true, false, true, true} -> true
+        case {my_turn, one_more_card, claimable, Map.get(@available_cards, color) >= cost, player.trains >= cost} do
+            {true, false, true, true, true} -> true
             _ -> false
         end
     end
