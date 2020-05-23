@@ -46,7 +46,7 @@ defmodule ILikeTrains.Card do
           {[card | cards], 0}
         else
           case card_color do
-            color -> {cards, count - 1}
+            ^color -> {cards, count - 1}
             _ -> {[card | cards], count}
           end
         end

@@ -104,7 +104,13 @@ defmodule ILikeTrains.Game do
 
     current_player = Map.get(players, turn)
     new_cards = Card.remove_n_by_color(current_player.cards, route.color, route.cost)
-    new_players = Map.put(players, turn, %Player{current_player | cards: new_cards})
+
+    new_players =
+      Map.put(players, turn, %Player{
+        current_player
+        | cards: new_cards,
+          trains: current_player.trains - route.cost
+      })
 
     routes = Route.claim_route_by_player(routes, route, turn)
 
