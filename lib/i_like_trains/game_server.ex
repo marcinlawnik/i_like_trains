@@ -29,9 +29,12 @@ defmodule ILikeTrains.GameServer do
     GenServer.call(GameServer, {:claim_route, id})
   end
 
-  # TODO: remove dummy game logic
-  def inc() do
-    GenServer.call(GameServer, :inc)
+  def take_tickets(player_name, choosen_ticket_ids) do
+    GenServer.call(GameServer, {:take_tickets, player_name, choosen_ticket_ids})
+  end
+
+  def request_tickets() do
+    GenServer.call(GameServer, :request_tickets)
   end
 
   ## GenServer Callbacks
@@ -58,9 +61,7 @@ defmodule ILikeTrains.GameServer do
     new_lobby = Lobby.ready(state, %Player{name: player_name})
 
     if Lobby.all_ready?(new_lobby) do
-      new_game =
-        Enum.map(new_lobby.players, fn {_k, p} -> p end)
-        |> Game.new()
+      new_game = Game.new(new_lobby.players)
 
       {:reply, new_game, new_game}
     else
@@ -86,10 +87,15 @@ defmodule ILikeTrains.GameServer do
     {:reply, new_game, new_game}
   end
 
-  # TODO: remove dummy game logic
   @impl true
-  def handle_call(:inc, _from, %Game{} = state) do
-    new_game = Game.inc(state)
+  def handle_call({:take_tickets, player_name, choosen_ticket_ids}, _from, %Game{} = state) do
+    new_game = Game.take_tickets(state, player_name, choosen_ticket_ids)
+    {:reply, new_game, new_game}
+  end
+
+  @impl true
+  def handle_call(:request_tickets, _from, %Game{} = state) do
+    new_game = Game.request_tickets(state)
     {:reply, new_game, new_game}
   end
 end

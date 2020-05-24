@@ -1,27 +1,58 @@
 <%
     player = Map.get(@state.players, @name)
     my_turn = @state.turn === @name
-    one_more_card = @state.state === "one_more_card"
+    is_drawing_tickets = Enum.count(player.tickets_to_choose) > 0
+    draw_cards_available = my_turn and @state.state == nil and !is_drawing_tickets
+    draw_ticket_available = draw_cards_available
+
     route_available = fn %{color: color, cost: cost, claimable: claimable} ->
-        case {my_turn, one_more_card, claimable, Map.get(@available_cards, color) >= cost, player.trains >= cost} do
-            {true, false, true, true, true} -> true
+        case {my_turn, @state.state, claimable, Map.get(@available_cards, color) >= cost, player.trains >= cost, is_drawing_tickets} do
+            {true, nil, true, true, true, false} -> true
             _ -> false
         end
     end
+
+    card_available = fn %{color: color} ->
+        case {my_turn, is_drawing_tickets, @state.state, color} do
+            {true, _, "one_more_card", "joker"} -> false
+            {true, false, "one_more_card", _} -> true
+            {true, false, nil, _} -> true
+            _ -> false
+        end
+    end
+
 %>
 <div>
     <h1>Game</h1>
-    <p>count: <%= @state.count %></p>
     <p>turn: <%= @state.turn %></p>
-    <button phx-click="inc" <%= if !my_turn do "disabled" else "" end %>>increment</button>
+
+    <%= if Enum.count(player.tickets_to_choose) > 0 do %>
+        <p>select your tickets</p>
+        <form phx-submit="<%= if @state.state === "take_initial_tickets" do "take_initial_tickets" else "take_tickets" end %>">
+            <p>
+                <%= for %{id: id, places: [from, to], points: points} <- player.tickets_to_choose do %>
+                    <input type="checkbox" name="<%= id %>" value="true">
+                    <%= from %>-<%= to %> | <%= points %>
+                <% end %>
+            </p>
+            <%= if @take_tickets_message !== nil do %>
+                <p><%= @take_tickets_message %></p>
+            <% end %>
+            <button type="submit">choose tickets</button>
+        </form>
+    <% end %>
+
+    <%= if @state.state === "take_initial_tickets" and Enum.count(player.tickets_to_choose) === 0 do %>
+        <p>wait for other players</p>
+    <% end %>
 
     <div>
         <p>routes:</p>
-        <%= for %{id: id, places: [from, to], color: color, cost: cost, claimable: claimable, claimed_by: claimed_by} = route <- @state.routes do %>
+        <%= for %{id: id, places: [from, to], color: color, cost: cost, claimed_by: claimed_by} = route <- @state.routes do %>
             <button
                 phx-click="claim_route"
                 phx-value-id="<%= id %>"
-                <%= if route_available.(route) do "" else "disabled" end %>
+                <%= unless route_available.(route) do "disabled" end %>
                 >
                     <%= from %>-<%= to %> | <%= color %> | <%= cost %> | <%= claimed_by %>
             </button>
@@ -32,14 +63,14 @@
         <p>cards_board:</p>
         <button
             phx-click="take_card_deck"
-            <%= if !my_turn do "disabled" else "" end %>>
+            <%= unless draw_cards_available do "disabled" end %>>
                 draw deck
-        </button>
-        <%= for {%{color: color}, index} <- Enum.with_index(@state.cards_board) do %>
+        </button> |
+        <%= for {%{color: color} = card, index} <- Enum.with_index(@state.cards_board) do %>
             <button
                 phx-click="take_card_board"
                 phx-value-index="<%= index %>"
-                <%= if !my_turn or (one_more_card and color === "joker") do "disabled" else "" end %>
+                <%= unless card_available.(card) do "disabled" end %>
                 >
                     <%= color %>
             </button>
@@ -51,6 +82,20 @@
         <p>my cards:</p>
         <%= for %{color: color} <- player.cards do %>
             <button><%= color %></button>
+        <% end %>
+    </div>
+
+    <div>
+        <p>my tickets:</p>
+        <button
+            phx-click="request_tickets"
+            <%= unless draw_ticket_available do "disabled" end %>>
+                draw ticket
+        </button> |
+        <%= for %{places: [from, to], points: points} <- player.tickets do %>
+            <button>
+                <%= from %>-<%= to %> | <%= points %>
+            </button>
         <% end %>
     </div>
 </div>

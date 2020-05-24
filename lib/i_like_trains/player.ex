@@ -3,7 +3,11 @@ defmodule ILikeTrains.Player do
 
   @initial_train_num 35
 
-  defstruct name: "", cards: [], trains: @initial_train_num
+  defstruct name: "",
+            cards: [],
+            trains: @initial_train_num,
+            tickets: [],
+            tickets_to_choose: []
 
   def new(name) do
     %Player{name: name}

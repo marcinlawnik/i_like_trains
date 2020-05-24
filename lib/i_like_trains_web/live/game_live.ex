@@ -1,10 +1,13 @@
 defmodule ILikeTrainsWeb.GameLive do
-  alias ILikeTrains.{GameServer, PlayerStore, Lobby, Game, Card}
+  alias ILikeTrains.{GameServer, Lobby, Game, Card}
 
   use ILikeTrainsWeb, :live_view
 
   @topic "pub_sub_game_topic"
   @state_update "state_update"
+
+  @min_initial_tickets 2
+  @min_tickets 1
 
   @impl true
   def mount(_params, %{"name" => name}, socket) do
@@ -13,7 +16,9 @@ defmodule ILikeTrainsWeb.GameLive do
     state = GameServer.join(name)
 
     pub_state(state)
-    {:ok, assign(socket, %{state: state, name: name, available_cards: %{}})}
+
+    {:ok,
+     assign(socket, %{state: state, name: name, available_cards: %{}, take_tickets_message: nil})}
   end
 
   @impl true
@@ -39,6 +44,38 @@ defmodule ILikeTrainsWeb.GameLive do
     {:noreply, assign(socket, %{state: new_state})}
   end
 
+  @impl true
+  def handle_event("take_initial_tickets", params, %{assigns: %{name: name}} = socket) do
+    take_tickets(params, name, @min_initial_tickets, socket)
+  end
+
+  @impl true
+  def handle_event("take_tickets", params, %{assigns: %{name: name}} = socket) do
+    take_tickets(params, name, @min_tickets, socket)
+  end
+
+  defp take_tickets(params, name, min, socket) do
+    choosen_ticket_ids =
+      Map.keys(params)
+      |> Enum.map(fn val -> String.to_integer(val) end)
+
+    if Enum.count(choosen_ticket_ids) < min do
+      {:noreply,
+       assign(socket, %{
+         take_tickets_message: "You need to select at least #{min} tickets"
+       })}
+    else
+      new_state = GameServer.take_tickets(name, choosen_ticket_ids)
+      pub_state(new_state)
+
+      {:noreply,
+       assign(socket, %{
+         state: new_state,
+         take_tickets_message: nil
+       })}
+    end
+  end
+
   def handle_event("take_card_board", %{"index" => index}, socket) do
     new_state = GameServer.take_card_board(index)
     pub_state(new_state)
@@ -57,10 +94,8 @@ defmodule ILikeTrainsWeb.GameLive do
     {:noreply, assign(socket, %{state: new_state})}
   end
 
-  # TODO: remove dummy game logic
-  def handle_event("inc", _, socket) do
-    new_state = GameServer.inc()
-    pub_state(new_state)
+  def handle_event("request_tickets", _, socket) do
+    new_state = GameServer.request_tickets()
     {:noreply, assign(socket, %{state: new_state})}
   end
 
