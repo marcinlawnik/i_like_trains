@@ -1,32 +1,42 @@
 defmodule ILikeTrains.Game do
-  alias ILikeTrains.{Game, Card, Player, Route}
+  alias ILikeTrains.{Game, Card, Player, Route, Ticket}
 
   @initial_cards 4
   @card_board_num 5
+  @initial_tickets 4
+  @turn_tickets 3
 
   @state_one_more_card "one_more_card"
+  @state_initial_tickets "take_initial_tickets"
 
   defstruct players: %{},
             cards_deck: [],
             cards_board: [],
             routes: [],
+            tickets: [],
             turn: nil,
-            state: nil,
-            count: 0
+            state: nil
 
-  def new([%Player{name: name} | _] = players) do
-    cards = Card.new_deck()
+  def new(players) do
+    first_turn = List.first(Map.keys(players))
     routes = Route.get_initial()
-    {cards_board, cards_deck} = Card.take_n(cards, @card_board_num)
+    tickets = Ticket.get_initial()
+
+    {cards_board, cards_deck} =
+      Card.new_deck()
+      |> Card.take_n(@card_board_num)
 
     %Game{
       players: players,
-      turn: name,
-      routes: routes,
+      cards_deck: cards_deck,
       cards_board: cards_board,
-      cards_deck: cards_deck
+      routes: routes,
+      tickets: tickets,
+      turn: first_turn,
+      state: @state_initial_tickets
     }
     |> distribute_cards()
+    |> distribute_initial_tickets()
   end
 
   defp next_turn(players, current_turn) do
@@ -37,16 +47,26 @@ defmodule ILikeTrains.Game do
     Enum.at(Map.keys(players), new_index)
   end
 
-  def distribute_cards(%Game{players: players} = game) do
-    {players, game} =
-      Enum.reduce(players, {%{}, game}, fn player, {players, game} ->
-        {hand, remaining_cards} = Card.take_n(game.cards_deck, @initial_cards)
-        new_players = Map.put(players, player.name, %Player{player | cards: hand})
-        new_game = %Game{game | cards_deck: remaining_cards}
-        {new_players, new_game}
+  def distribute_cards(%Game{players: players, cards_deck: cards_deck} = game) do
+    {players_with_cards, remaining_cards} =
+      Enum.reduce(players, {%{}, cards_deck}, fn {_k, player}, {players, cards} ->
+        {cards, remaining_cards} = Card.take_n(cards, @initial_cards)
+        new_players = Map.put(players, player.name, %Player{player | cards: cards})
+        {new_players, remaining_cards}
       end)
 
-    %Game{game | players: players}
+    %Game{game | players: players_with_cards, cards_deck: remaining_cards}
+  end
+
+  def distribute_initial_tickets(%Game{players: players, tickets: tickets} = game) do
+    {players_with_tickets, remaining_tickets} =
+      Enum.reduce(players, {%{}, tickets}, fn {_k, player}, {players, tickets} ->
+        {tickets, remaining_tickets} = Ticket.take_n(tickets, @initial_tickets)
+        new_players = Map.put(players, player.name, %Player{player | tickets_to_choose: tickets})
+        {new_players, remaining_tickets}
+      end)
+
+    %Game{game | players: players_with_tickets, tickets: remaining_tickets}
   end
 
   def take_card_board(%Game{} = game, card_index) do
@@ -117,8 +137,56 @@ defmodule ILikeTrains.Game do
     %Game{game | players: new_players, routes: routes, turn: next_turn(players, turn)}
   end
 
-  # TODO: remove dummy game logic
-  def inc(%Game{players: players, turn: turn, count: count} = game) do
-    %Game{game | count: count + 1, turn: next_turn(players, turn)}
+  def take_tickets(
+        %Game{players: players, turn: turn, state: game_state} = game,
+        player_name,
+        choosen_ticket_ids
+      ) do
+    player = Map.get(players, player_name)
+
+    {choosen_tickets, remaining_tickets} =
+      Enum.reduce(player.tickets_to_choose, {[], []}, fn ticket, {to_choose, remaining} ->
+        if Enum.member?(choosen_ticket_ids, ticket.id) do
+          {to_choose ++ [ticket], remaining}
+        else
+          {to_choose, remaining ++ [ticket]}
+        end
+      end)
+
+    all_players_taken_tickets =
+      Enum.all?(players, fn {_k, player} ->
+        Enum.count(player.tickets_to_choose) === 0 or player.name === player_name
+      end)
+
+    {state, turn} =
+      case {all_players_taken_tickets, game_state} do
+        {true, @state_initial_tickets} -> {nil, turn}
+        {_, nil} -> {nil, next_turn(players, turn)}
+        _ -> {game_state, turn}
+      end
+
+    %Game{
+      game
+      | players:
+          Map.put(players, player_name, %Player{
+            player
+            | tickets: choosen_tickets ++ player.tickets,
+              tickets_to_choose: []
+          }),
+        tickets: game.tickets ++ remaining_tickets,
+        state: state,
+        turn: turn
+    }
+  end
+
+  def request_tickets(%Game{players: players, turn: turn, tickets: tickets} = game) do
+    {taken, remaining} = Ticket.take_n(tickets, @turn_tickets)
+    current_player = Map.get(players, turn)
+
+    %Game{
+      game
+      | tickets: remaining,
+        players: Map.put(players, turn, %Player{current_player | tickets_to_choose: taken})
+    }
   end
 end
