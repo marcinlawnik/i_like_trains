@@ -3,18 +3,18 @@ defmodule ILikeTrains.Card do
 
   defstruct color: nil
 
-  # 12 each color
-  # 14 locomotives
   @colors ["pink", "white", "blue", "yellow", "orange", "black", "red", "green"]
   @joker "joker"
+  @color_num 12
+  @joker_num 14
 
   def new_deck() do
     cards =
       @colors
-      |> Enum.map(fn color -> List.duplicate(color, 12) end)
+      |> Enum.map(fn color -> List.duplicate(color, @color_num) end)
       |> List.flatten()
 
-    (List.duplicate(@joker, 12) ++ cards)
+    (List.duplicate(@joker, @joker_num) ++ cards)
     |> Enum.map(fn color -> %Card{color: color} end)
     |> Enum.shuffle()
   end

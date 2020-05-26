@@ -6,8 +6,8 @@ defmodule ILikeTrainsWeb.GameLive do
   @topic "pub_sub_game_topic"
   @state_update "state_update"
 
-  @min_initial_tickets 2
-  @min_tickets 1
+  @min_initial_tickets_num 2
+  @min_turn_tickets_num 1
 
   @impl true
   def mount(_params, %{"name" => name}, socket) do
@@ -46,34 +46,12 @@ defmodule ILikeTrainsWeb.GameLive do
 
   @impl true
   def handle_event("take_initial_tickets", params, %{assigns: %{name: name}} = socket) do
-    take_tickets(params, name, @min_initial_tickets, socket)
+    take_tickets(params, name, @min_initial_tickets_num, socket)
   end
 
   @impl true
   def handle_event("take_tickets", params, %{assigns: %{name: name}} = socket) do
-    take_tickets(params, name, @min_tickets, socket)
-  end
-
-  defp take_tickets(params, name, min, socket) do
-    choosen_ticket_ids =
-      Map.keys(params)
-      |> Enum.map(fn val -> String.to_integer(val) end)
-
-    if Enum.count(choosen_ticket_ids) < min do
-      {:noreply,
-       assign(socket, %{
-         take_tickets_message: "You need to select at least #{min} tickets"
-       })}
-    else
-      new_state = GameServer.take_tickets(name, choosen_ticket_ids)
-      pub_state(new_state)
-
-      {:noreply,
-       assign(socket, %{
-         state: new_state,
-         take_tickets_message: nil
-       })}
-    end
+    take_tickets(params, name, @min_turn_tickets_num, socket)
   end
 
   def handle_event("take_card_board", %{"index" => index}, socket) do
@@ -106,5 +84,27 @@ defmodule ILikeTrainsWeb.GameLive do
 
   defp pub_state(state) do
     ILikeTrainsWeb.Endpoint.broadcast_from(self(), @topic, @state_update, state)
+  end
+
+  defp take_tickets(params, name, min, socket) do
+    choosen_ticket_ids =
+      Map.keys(params)
+      |> Enum.map(fn val -> String.to_integer(val) end)
+
+    if Enum.count(choosen_ticket_ids) < min do
+      {:noreply,
+       assign(socket, %{
+         take_tickets_message: "You need to select at least #{min} tickets"
+       })}
+    else
+      new_state = GameServer.take_tickets(name, choosen_ticket_ids)
+      pub_state(new_state)
+
+      {:noreply,
+       assign(socket, %{
+         state: new_state,
+         take_tickets_message: nil
+       })}
+    end
   end
 end
