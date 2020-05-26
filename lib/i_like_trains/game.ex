@@ -1,10 +1,10 @@
 defmodule ILikeTrains.Game do
   alias ILikeTrains.{Game, Card, Player, Route, Ticket}
 
-  @initial_cards 4
-  @card_board_num 5
-  @initial_tickets 4
-  @turn_tickets 3
+  @cards_on_hand_num 4
+  @cards_on_board_num 5
+  @initial_tickets_num 4
+  @turn_tickets_num 3
 
   @state_one_more_card "one_more_card"
   @state_initial_tickets "take_initial_tickets"
@@ -24,7 +24,7 @@ defmodule ILikeTrains.Game do
 
     {cards_board, cards_deck} =
       Card.new_deck()
-      |> Card.take_n(@card_board_num)
+      |> Card.take_n(@cards_on_board_num)
 
     %Game{
       players: players,
@@ -50,7 +50,7 @@ defmodule ILikeTrains.Game do
   def distribute_cards(%Game{players: players, cards_deck: cards_deck} = game) do
     {players_with_cards, remaining_cards} =
       Enum.reduce(players, {%{}, cards_deck}, fn {_k, player}, {players, cards} ->
-        {cards, remaining_cards} = Card.take_n(cards, @initial_cards)
+        {cards, remaining_cards} = Card.take_n(cards, @cards_on_hand_num)
         new_players = Map.put(players, player.name, %Player{player | cards: cards})
         {new_players, remaining_cards}
       end)
@@ -61,7 +61,7 @@ defmodule ILikeTrains.Game do
   def distribute_initial_tickets(%Game{players: players, tickets: tickets} = game) do
     {players_with_tickets, remaining_tickets} =
       Enum.reduce(players, {%{}, tickets}, fn {_k, player}, {players, tickets} ->
-        {tickets, remaining_tickets} = Ticket.take_n(tickets, @initial_tickets)
+        {tickets, remaining_tickets} = Ticket.take_n(tickets, @initial_tickets_num)
         new_players = Map.put(players, player.name, %Player{player | tickets_to_choose: tickets})
         {new_players, remaining_tickets}
       end)
@@ -180,7 +180,7 @@ defmodule ILikeTrains.Game do
   end
 
   def request_tickets(%Game{players: players, turn: turn, tickets: tickets} = game) do
-    {taken, remaining} = Ticket.take_n(tickets, @turn_tickets)
+    {taken, remaining} = Ticket.take_n(tickets, @turn_tickets_num)
     current_player = Map.get(players, turn)
 
     %Game{
