@@ -1,13 +1,14 @@
 defmodule ILikeTrains.Player do
-  alias ILikeTrains.Player
+  alias ILikeTrains.{Player, Graph, MapConfig}
 
-  @initial_train_num 35
+  @initial_train_num 5
 
   defstruct name: "",
             cards: [],
             trains: @initial_train_num,
             tickets: [],
-            tickets_to_choose: []
+            tickets_to_choose: [],
+            connections: Graph.graph_of_vertices(MapConfig.places_data())
 
   def new(name) do
     %Player{name: name}
