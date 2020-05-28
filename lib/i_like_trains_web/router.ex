@@ -19,6 +19,7 @@ defmodule ILikeTrainsWeb.Router do
 
     get "/", PageController, :index
     post "/", PageController, :join
+    get "/leave", PageController, :leave
     live "/game", GameLive, :index
   end
 

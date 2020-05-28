@@ -3,6 +3,10 @@ defmodule ILikeTrains.Lobby do
 
   defstruct players: %{}, ready: MapSet.new([])
 
+  def new() do
+    %Lobby{}
+  end
+
   def join(%Lobby{players: players} = lobby, %Player{} = player) do
     %Lobby{lobby | players: Map.put(players, player.name, player)}
   end

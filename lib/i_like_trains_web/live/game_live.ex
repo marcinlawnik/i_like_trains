@@ -77,6 +77,12 @@ defmodule ILikeTrainsWeb.GameLive do
     {:noreply, assign(socket, %{state: new_state})}
   end
 
+  def handle_event("leave_game", _, %{assigns: %{name: name}} = socket) do
+    ILikeTrainsWeb.Endpoint.unsubscribe(@topic)
+    GameServer.leave_game(name)
+    {:noreply, redirect(socket, to: Routes.page_path(ILikeTrainsWeb.Endpoint, :leave))}
+  end
+
   @impl true
   def handle_info(%{event: @state_update, payload: state}, socket) do
     {:noreply, assign(socket, %{state: state})}

@@ -5,7 +5,6 @@ defmodule ILikeTrains.Route do
   # claimable: false => can be claimed
   defstruct id: 0, places: [], color: "", cost: 0, claimable: true, claimed_by: nil
 
-  @places_data MapConfig.places_data()
   @routes_data MapConfig.routes_data()
 
   def get_initial() do

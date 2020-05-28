@@ -37,6 +37,10 @@ defmodule ILikeTrains.GameServer do
     GenServer.call(GameServer, :request_tickets)
   end
 
+  def leave_game(name) do
+    GenServer.call(GameServer, {:leave_game, name})
+  end
+
   ## GenServer Callbacks
 
   @impl true
@@ -96,6 +100,12 @@ defmodule ILikeTrains.GameServer do
   @impl true
   def handle_call(:request_tickets, _from, %Game{} = state) do
     new_game = Game.request_tickets(state)
+    {:reply, new_game, new_game}
+  end
+
+  @impl true
+  def handle_call({:leave_game, name}, _from, %Game{} = state) do
+    new_game = Game.leave_game(state, name)
     {:reply, new_game, new_game}
   end
 end
