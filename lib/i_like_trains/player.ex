@@ -8,7 +8,8 @@ defmodule ILikeTrains.Player do
             trains: @initial_train_num,
             tickets: [],
             tickets_to_choose: [],
-            connections: Graph.graph_of_vertices(MapConfig.places_data())
+            connections: Graph.graph_of_vertices(MapConfig.places_data()),
+            points: 0
 
   def new(name) do
     %Player{name: name}

@@ -21,11 +21,17 @@
             _ -> false
         end
     end
-
 %>
 <div>
     <h1>Game</h1>
     <p>turn: <%= @state.turn %></p>
+
+    <%= if @state.state === "game_finished" do %>
+        <%= for %{name: name, points: points} <- Map.values(@state.players) do %>
+            <p><%= name %> / <%= points %></p>
+        <% end %>
+        <button phx-click="leave_game">Leave game</button>
+    <% end %>
 
     <%= if Enum.count(player.tickets_to_choose) > 0 do %>
         <p>select your tickets</p>

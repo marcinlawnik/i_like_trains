@@ -1,13 +1,15 @@
 defmodule ILikeTrains.Game do
-  alias ILikeTrains.{Game, Card, Player, Route, Ticket, Graph}
+  alias ILikeTrains.{Game, Lobby, Card, Player, Route, Ticket, Graph}
 
   @cards_on_hand_num 4
   @cards_on_board_num 5
   @initial_tickets_num 4
   @turn_tickets_num 3
+  @points_for_trains %{1 => 1, 2 => 2, 3 => 4, 4 => 7, 5 => 10, 6 => 15}
 
   @state_one_more_card "one_more_card"
   @state_initial_tickets "take_initial_tickets"
+  @state_game_finished "game_finished"
 
   defstruct players: %{},
             cards_deck: [],
@@ -15,8 +17,8 @@ defmodule ILikeTrains.Game do
             routes: [],
             tickets: [],
             turn: nil,
-            last_turn: nil,
-            state: nil
+            state: nil,
+            last_turn: nil
 
   def new(players) do
     first_turn = List.first(Map.keys(players))
@@ -44,8 +46,8 @@ defmodule ILikeTrains.Game do
     current_player = Map.get(players, turn)
 
     if last_turn === turn do
-      # TODO: game termination - count points
-      IO.inspect("terminated")
+      players_with_points = count_points_for_tickets(players)
+      %Game{game | players: players_with_points, state: @state_game_finished}
     else
       index =
         Map.keys(players)
@@ -149,6 +151,7 @@ defmodule ILikeTrains.Game do
       current_player
       | cards: updated_cards,
         trains: current_player.trains - route.cost,
+        points: current_player.points + Map.get(@points_for_trains, route.cost),
         connections: updated_connections
     }
 
@@ -210,5 +213,36 @@ defmodule ILikeTrains.Game do
       | tickets: remaining,
         players: Map.put(players, turn, %Player{current_player | tickets_to_choose: taken})
     }
+  end
+
+  def count_points_for_tickets(players) do
+    Enum.reduce(players, %{}, fn {player_name,
+                                  %Player{
+                                    tickets: tickets,
+                                    connections: connections,
+                                    points: points
+                                  } = player},
+                                 acc ->
+      tickets_points =
+        Enum.reduce(tickets, 0, fn %Ticket{places: [from, to], points: ticket_points}, acc ->
+          if Graph.are_connected?(connections, [from, to]) do
+            acc + ticket_points
+          else
+            acc - ticket_points
+          end
+        end)
+
+      Map.put(acc, player_name, %Player{player | points: points + tickets_points})
+    end)
+  end
+
+  def leave_game(%Game{players: players} = game, name) do
+    remaining_players = Map.delete(players, name)
+
+    if Enum.count(remaining_players) > 0 do
+      %Game{game | players: remaining_players}
+    else
+      Lobby.new()
+    end
   end
 end
