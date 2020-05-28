@@ -55,13 +55,13 @@
 
     <div>
         <p>routes:</p>
-        <%= for %{id: id, places: [from, to], color: color, cost: cost, claimed_by: claimed_by} = route <- @state.routes do %>
+        <%= for %{id: id, places: [from, to], color: color, cost: cost, assigned_to: assigned_to} = route <- @state.routes do %>
             <button
                 phx-click="claim_route"
                 phx-value-id="<%= id %>"
                 <%= unless route_available.(route) do "disabled" end %>
                 >
-                    <%= from %>-<%= to %> | <%= color %> | <%= cost %> | <%= claimed_by %>
+                    <%= from %>-<%= to %> | <%= color %> | <%= cost %> | <%= assigned_to %>
             </button>
         <% end %>
     </div>

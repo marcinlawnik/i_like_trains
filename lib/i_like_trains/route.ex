@@ -23,7 +23,7 @@ defmodule ILikeTrains.Route do
     Enum.map(routes, fn %Route{id: route_id, places: [route_from, route_to]} = route ->
       case {route_id, {route_from, route_to},
             players_count > @multi_routes_usable_above_player_numd} do
-        {^claimed_route_id, _} -> %Route{route | assignable: false, assigned_to: player_name}
+        {^claimed_route_id, _, _} -> %Route{route | assignable: false, assigned_to: player_name}
         {_, {^from, ^to}, false} -> %Route{route | assignable: false}
         {_, {^from, ^to}, true} -> route
         _ -> route
