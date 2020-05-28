@@ -1,5 +1,6 @@
 defmodule ILikeTrains.Game do
-  alias ILikeTrains.{Game, Lobby, Card, Player, Route, Ticket, Graph}
+  alias __MODULE__
+  alias ILikeTrains.{Lobby, Card, Player, Route, Ticket, Graph}
 
   @cards_on_hand_num 4
   @cards_on_board_num 5

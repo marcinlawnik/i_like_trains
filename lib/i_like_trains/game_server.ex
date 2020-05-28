@@ -1,5 +1,6 @@
 defmodule ILikeTrains.GameServer do
-  alias ILikeTrains.{Lobby, Game, Player, GameServer}
+  alias __MODULE__
+  alias ILikeTrains.{Lobby, Game, Player}
 
   use GenServer
 

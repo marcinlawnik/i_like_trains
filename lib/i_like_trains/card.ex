@@ -1,5 +1,5 @@
 defmodule ILikeTrains.Card do
-  alias ILikeTrains.Card
+  alias __MODULE__
 
   defstruct color: nil
 
