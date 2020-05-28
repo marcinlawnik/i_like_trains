@@ -1,5 +1,6 @@
 defmodule ILikeTrains.Lobby do
-  alias ILikeTrains.{Lobby, Player}
+  alias __MODULE__
+  alias ILikeTrains.Player
 
   defstruct players: %{}, ready: MapSet.new([])
 

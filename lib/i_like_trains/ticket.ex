@@ -1,5 +1,6 @@
 defmodule ILikeTrains.Ticket do
-  alias ILikeTrains.{Ticket, MapConfig}
+  alias __MODULE__
+  alias ILikeTrains.MapConfig
 
   defstruct id: 0, places: [], points: 0
 

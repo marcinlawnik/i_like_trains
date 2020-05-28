@@ -6,8 +6,8 @@
     draw_cards_available = can_draw and (Enum.count(@state.cards_deck) + Enum.count(@state.cards_board) >= 2)
     draw_ticket_available = can_draw and @state.state == nil and Enum.count(@state.tickets) > 0
 
-    route_available = fn %{color: color, cost: cost, claimable: claimable} ->
-        case {my_turn, @state.state, claimable, Map.get(@available_cards, color) >= cost, player.trains >= cost, is_drawing_tickets} do
+    route_available = fn %{color: color, cost: cost, assignable: assignable} ->
+        case {my_turn, @state.state, assignable, Map.get(@available_cards, color) >= cost, player.trains >= cost, is_drawing_tickets} do
             {true, nil, true, true, true, false} -> true
             _ -> false
         end

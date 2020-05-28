@@ -1,5 +1,6 @@
 defmodule ILikeTrains.Player do
-  alias ILikeTrains.{Player, Graph, MapConfig}
+  alias __MODULE__
+  alias ILikeTrains.{Graph, MapConfig}
 
   @initial_train_num 5
 

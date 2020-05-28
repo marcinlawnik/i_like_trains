@@ -1,7 +1,7 @@
 defmodule ILikeTrains.Graph do
-  alias ILikeTrains.Graph
+  alias __MODULE__
 
-  # vertices - map<vertex, mapset of connected vertices>
+  @type t :: %ILikeTrains.Graph{vertices: %{required(String.t()) => MapSet.t()} | nil}
   defstruct vertices: %{}
 
   def graph_of_vertices(vertices_list) do
