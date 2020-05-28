@@ -54,29 +54,34 @@ defmodule ILikeTrainsWeb.GameLive do
     take_tickets(params, name, @min_turn_tickets_num, socket)
   end
 
+  @impl true
   def handle_event("take_card_board", %{"index" => index}, socket) do
     new_state = GameServer.take_card_board(index)
     pub_state(new_state)
     {:noreply, assign(socket, %{state: new_state})}
   end
 
+  @impl true
   def handle_event("take_card_deck", _, socket) do
     new_state = GameServer.take_card_deck()
     pub_state(new_state)
     {:noreply, assign(socket, %{state: new_state})}
   end
 
+  @impl true
   def handle_event("claim_route", %{"id" => id}, socket) do
     new_state = GameServer.claim_route(id)
     pub_state(new_state)
     {:noreply, assign(socket, %{state: new_state})}
   end
 
+  @impl true
   def handle_event("request_tickets", _, socket) do
     new_state = GameServer.request_tickets()
     {:noreply, assign(socket, %{state: new_state})}
   end
 
+  @impl true
   def handle_event("leave_game", _, %{assigns: %{name: name}} = socket) do
     ILikeTrainsWeb.Endpoint.unsubscribe(@topic)
     GameServer.leave_game(name)
