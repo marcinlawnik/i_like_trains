@@ -157,7 +157,8 @@ defmodule ILikeTrains.Game do
     }
 
     players = Map.put(players, turn, player)
-    routes = Route.claim_route_by_player(routes, route, turn)
+    players_count = Enum.count(players)
+    routes = Route.claim_route_by_player(routes, route, turn, players_count)
 
     %Game{game | players: players, routes: routes} |> next_turn()
   end
