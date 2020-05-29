@@ -7,7 +7,7 @@ defmodule ILikeTrains.Graph do
   def graph_of_vertices(vertices_list) do
     vertices =
       vertices_list
-      |> Enum.map(fn vertex -> {vertex, MapSet.new()} end)
+      |> Enum.map(fn {_k, %{name: name}} -> {name, MapSet.new()} end)
       |> Map.new()
 
     %Graph{vertices: vertices}

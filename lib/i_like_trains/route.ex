@@ -5,7 +5,13 @@ defmodule ILikeTrains.Route do
   # assignable: true & assigned_to: username => taken by user
   # assignable: true & assigned_to: nil => alternative route taken, this one can't be assigned
   # assignable: false => can be claimed
-  defstruct id: 0, places: [], color: "", cost: 0, assignable: true, assigned_to: nil
+  defstruct id: 0,
+            places: [],
+            color: "",
+            cost: 0,
+            assignable: true,
+            assigned_to: nil,
+            position_shift: nil
 
   @routes_data MapConfig.routes_data()
   @multi_routes_usable_above_player_num 3

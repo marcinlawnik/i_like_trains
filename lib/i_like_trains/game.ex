@@ -1,6 +1,6 @@
 defmodule ILikeTrains.Game do
   alias __MODULE__
-  alias ILikeTrains.{Lobby, Card, Player, Route, Ticket, Graph}
+  alias ILikeTrains.{Lobby, Card, Player, Route, Ticket, Graph, MapConfig}
 
   @cards_on_hand_num 4
   @cards_on_board_num 5
@@ -15,6 +15,7 @@ defmodule ILikeTrains.Game do
   defstruct players: %{},
             cards_deck: [],
             cards_board: [],
+            places: MapConfig.places_data(),
             routes: [],
             tickets: [],
             turn: nil,
@@ -31,7 +32,7 @@ defmodule ILikeTrains.Game do
       |> Card.take_n(@cards_on_board_num)
 
     %Game{
-      players: players,
+      players: Player.assign_colors(players),
       cards_deck: cards_deck,
       cards_board: cards_board,
       routes: routes,
