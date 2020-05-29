@@ -1,20 +1,20 @@
 defmodule ILikeTrains.MapConfig do
-  @places_data [
-    "a",
-    "b",
-    "c",
-    "d"
-  ]
+  @places_data %{
+    "a" => %{name: "a", x: 100, y: 100},
+    "b" => %{name: "b", x: 300, y: 100},
+    "c" => %{name: "c", x: 300, y: 300},
+    "d" => %{name: "d", x: 100, y: 300}
+  }
 
   @routes_data [
     # let's keep places in alphabetical order - it will be easier to pattern match them
-    %{id: 1, places: ["a", "b"], color: "red", cost: 1},
-    %{id: 2, places: ["a", "b"], color: "blue", cost: 1},
-    %{id: 3, places: ["b", "c"], color: "blue", cost: 3},
-    %{id: 4, places: ["c", "d"], color: "orange", cost: 1},
+    %{id: 1, places: ["a", "b"], color: "red", cost: 1, position_shift: "top"},
+    %{id: 2, places: ["a", "b"], color: "blue", cost: 1, position_shift: "bottom"},
+    %{id: 3, places: ["b", "c"], color: "orange", cost: 3},
+    %{id: 4, places: ["c", "d"], color: "pink", cost: 1},
     %{id: 5, places: ["a", "d"], color: "white", cost: 4},
     %{id: 6, places: ["a", "c"], color: "black", cost: 5},
-    %{id: 7, places: ["b", "d"], color: "pink", cost: 2}
+    %{id: 7, places: ["b", "d"], color: "green", cost: 2}
   ]
 
   @ticket_data [

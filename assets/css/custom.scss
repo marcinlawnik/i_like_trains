@@ -1,0 +1,118 @@
+$colors: (
+  "pink": #f47cc3,
+  "white": #ecf0f1,
+  "blue": #3597db,
+  "yellow": #ffcd00,
+  "orange": #e67e23,
+  "black": #444444,
+  "red": #e74b3c,
+  "green": #2ecc71,
+);
+
+$colors-hovers: (
+  "pink": #d45c9e,
+  "white": #bdc3c7,
+  "blue": #2a7fb9,
+  "yellow": #ffa800,
+  "orange": #d35400,
+  "black": #262626,
+  "red": #c0392c,
+  "green": #27ae60,
+);
+
+$train: (
+  red: red,
+  blue: blue,
+  yellow: yellow,
+  green: green,
+  black: black,
+);
+
+.board {
+  margin-bottom: 10px;
+  width: 640px;
+  height: 480px;
+  border: 1px solid black;
+  position: relative;
+
+  svg {
+    position: absolute;
+
+    line {
+      stroke-linecap: round;
+    }
+  }
+}
+
+.place-name {
+  position: relative;
+  padding: 0 8px;
+  color: white;
+  background: gray;
+  top: 24px;
+  border-radius: 8px;
+  display: inline-block;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+@each $name, $color in $colors {
+  .btn-#{$name} {
+    background: $color;
+    border-color: $color;
+    color: map-get($colors, "white");
+
+    &:hover {
+      background: map-get($colors-hovers, $name);
+      border-color: map-get($colors-hovers, $name);
+    }
+  }
+}
+
+.btn-white {
+  color: map-get($colors, "black");
+}
+
+@each $name, $color in $colors {
+  .line-#{$name} {
+    stroke: $color;
+
+    &:hover {
+      stroke: map-get($colors-hovers, $name);
+    }
+  }
+}
+
+.line-disabled {
+  opacity: 0.5;
+  stroke: #353535;
+
+  &:hover {
+    stroke: #353535;
+  }
+}
+
+@each $name, $color in $train {
+  .train-#{$name} {
+    stroke: $color;
+
+    &:hover {
+      stroke: $color;
+    }
+  }
+}
+
+.place {
+  border-radius: 50%;
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  transform: translate(-10px, -10px);
+  background: map-get($colors, "black");
+}
+
+.box {
+  p {
+    margin-bottom: 10px;
+  }
+}
