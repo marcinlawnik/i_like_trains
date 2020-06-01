@@ -51,8 +51,8 @@ defmodule ILikeTrains.GameServer do
 
   @impl true
   def handle_call({:join, player_name}, _from, %Lobby{} = state) do
-    new_lobby = Lobby.join(state, %Player{name: player_name})
-    {:reply, new_lobby, new_lobby}
+    new_state = Lobby.join(state, %Player{name: player_name})
+    {:reply, new_state, new_state}
   end
 
   @impl true
@@ -63,50 +63,43 @@ defmodule ILikeTrains.GameServer do
 
   @impl true
   def handle_call({:ready, player_name}, _from, %Lobby{} = state) do
-    new_lobby = Lobby.ready(state, %Player{name: player_name})
-
-    if Lobby.all_ready?(new_lobby) do
-      new_game = Game.new(new_lobby.players)
-
-      {:reply, new_game, new_game}
-    else
-      {:reply, new_lobby, new_lobby}
-    end
+    new_state = Lobby.ready(state, %Player{name: player_name})
+    {:reply, new_state, new_state}
   end
 
   @impl true
   def handle_call({:take_card_board, card_index}, _from, %Game{} = state) do
-    new_game = Game.take_card_board(state, card_index)
-    {:reply, new_game, new_game}
+    new_state = Game.take_card_board(state, card_index)
+    {:reply, new_state, new_state}
   end
 
   @impl true
   def handle_call(:take_card_deck, _from, %Game{} = state) do
-    new_game = Game.take_card_deck(state)
-    {:reply, new_game, new_game}
+    new_state = Game.take_card_deck(state)
+    {:reply, new_state, new_state}
   end
 
   @impl true
   def handle_call({:claim_route, route_id}, _from, %Game{} = state) do
-    new_game = Game.claim_route(state, route_id)
-    {:reply, new_game, new_game}
+    new_state = Game.claim_route(state, route_id)
+    {:reply, new_state, new_state}
   end
 
   @impl true
   def handle_call({:take_tickets, player_name, choosen_ticket_ids}, _from, %Game{} = state) do
-    new_game = Game.take_tickets(state, player_name, choosen_ticket_ids)
-    {:reply, new_game, new_game}
+    new_state = Game.take_tickets(state, player_name, choosen_ticket_ids)
+    {:reply, new_state, new_state}
   end
 
   @impl true
   def handle_call(:request_tickets, _from, %Game{} = state) do
-    new_game = Game.request_tickets(state)
-    {:reply, new_game, new_game}
+    new_state = Game.request_tickets(state)
+    {:reply, new_state, new_state}
   end
 
   @impl true
   def handle_call({:leave_game, name}, _from, %Game{} = state) do
-    new_game = Game.leave_game(state, name)
-    {:reply, new_game, new_game}
+    new_state = Game.leave_game(state, name)
+    {:reply, new_state, new_state}
   end
 end

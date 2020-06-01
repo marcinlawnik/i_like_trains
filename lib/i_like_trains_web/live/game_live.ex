@@ -56,7 +56,7 @@ defmodule ILikeTrainsWeb.GameLive do
 
   @impl true
   def handle_event("take_card_board", %{"index" => index}, socket) do
-    new_state = GameServer.take_card_board(index)
+    new_state = String.to_integer(index) |> GameServer.take_card_board()
     pub_state(new_state)
     {:noreply, assign(socket, %{state: new_state})}
   end
@@ -70,7 +70,7 @@ defmodule ILikeTrainsWeb.GameLive do
 
   @impl true
   def handle_event("claim_route", %{"id" => id}, socket) do
-    new_state = GameServer.claim_route(id)
+    new_state = String.to_integer(id) |> GameServer.claim_route()
     pub_state(new_state)
     {:noreply, assign(socket, %{state: new_state})}
   end
