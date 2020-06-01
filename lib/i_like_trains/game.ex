@@ -23,10 +23,6 @@ defmodule ILikeTrains.Game do
             last_turn: nil
 
   def new(players) do
-    first_turn = List.first(Map.keys(players))
-    routes = Route.get_initial()
-    tickets = Ticket.get_initial()
-
     {cards_board, cards_deck} =
       Card.new_deck()
       |> Card.take_n(@cards_on_board_num)
@@ -35,38 +31,13 @@ defmodule ILikeTrains.Game do
       players: Player.assign_colors(players),
       cards_deck: cards_deck,
       cards_board: cards_board,
-      routes: routes,
-      tickets: tickets,
-      turn: first_turn,
+      routes: Route.get_initial(),
+      tickets: Ticket.get_initial(),
+      turn: List.first(Map.keys(players)),
       state: @state_initial_tickets
     }
     |> distribute_cards()
     |> distribute_initial_tickets()
-  end
-
-  defp next_turn(%Game{players: players, turn: turn, last_turn: last_turn} = game) do
-    current_player = Map.get(players, turn)
-
-    if last_turn === turn do
-      players_with_points = count_points_for_tickets(players)
-      %Game{game | players: players_with_points, state: @state_game_finished}
-    else
-      index =
-        Map.keys(players)
-        |> Enum.find_index(fn name -> name === turn end)
-
-      new_index = rem(index + 1, Enum.count(players))
-      new_turn = Enum.at(Map.keys(players), new_index)
-
-      new_last_turn =
-        if current_player.trains <= 2 and last_turn === nil do
-          turn
-        else
-          last_turn
-        end
-
-      %Game{game | turn: new_turn, last_turn: new_last_turn}
-    end
   end
 
   def distribute_cards(%Game{players: players, cards_deck: cards_deck} = game) do
@@ -91,8 +62,30 @@ defmodule ILikeTrains.Game do
     %Game{game | players: players_with_tickets, tickets: remaining_tickets}
   end
 
-  def take_card_board(%Game{} = game, card_index) do
-    index = String.to_integer(card_index)
+  defp next_turn(%Game{players: players, turn: turn, last_turn: last_turn} = game)
+       when turn === last_turn do
+    players_with_points = count_points_for_tickets(players)
+    %Game{game | players: players_with_points, state: @state_game_finished}
+  end
+
+  defp next_turn(%Game{players: players, turn: turn, last_turn: last_turn} = game) do
+    current_player = Map.get(players, turn)
+    players_keys = Map.keys(players)
+    index = Enum.find_index(players_keys, fn name -> name === turn end)
+    new_index = rem(index + 1, Enum.count(players))
+    new_turn = Enum.at(players_keys, new_index)
+
+    new_last_turn =
+      if current_player.trains <= 2 and last_turn === nil do
+        turn
+      else
+        last_turn
+      end
+
+    %Game{game | turn: new_turn, last_turn: new_last_turn}
+  end
+
+  def take_card_board(%Game{} = game, index) do
     card = Enum.at(game.cards_board, index)
     [new_card | remaining_deck] = game.cards_deck
     new_cards_board = List.replace_at(game.cards_board, index, new_card)
@@ -121,7 +114,6 @@ defmodule ILikeTrains.Game do
 
   def take_card_deck(%Game{} = game) do
     [new_card | remaining_deck] = game.cards_deck
-
     current_player = Map.get(game.players, game.turn)
     player_with_card = %Player{current_player | cards: [new_card | current_player.cards]}
 
@@ -141,19 +133,18 @@ defmodule ILikeTrains.Game do
   end
 
   def claim_route(%Game{routes: routes, players: players, turn: turn} = game, route_id) do
-    route_id_int = String.to_integer(route_id)
-    route = Enum.find(routes, fn %Route{id: id} -> id === route_id_int end)
-    %Route{places: places} = route
+    route = Enum.find(routes, fn %Route{id: id} -> id === route_id end)
+    %Route{places: places, color: color, cost: cost} = route
 
     current_player = Map.get(players, turn)
-    updated_cards = Card.remove_n_by_color(current_player.cards, route.color, route.cost)
+    updated_cards = Card.remove_n_by_color(current_player.cards, color, cost)
     updated_connections = Graph.add_route(current_player.connections, places)
 
     player = %Player{
       current_player
       | cards: updated_cards,
-        trains: current_player.trains - route.cost,
-        points: current_player.points + Map.get(@points_for_trains, route.cost),
+        trains: current_player.trains - cost,
+        points: current_player.points + Map.get(@points_for_trains, cost),
         connections: updated_connections
     }
 
@@ -165,23 +156,18 @@ defmodule ILikeTrains.Game do
   end
 
   def take_tickets(
-        %Game{players: players, state: state} = game,
+        %Game{players: players, state: state, tickets: game_tickets} = game,
         player_name,
-        choosen_ticket_ids
+        taken_tickets_ids
       ) do
     player = Map.get(players, player_name)
+    %Player{tickets_to_choose: tickets_to_choose, tickets: tickets} = player
 
     {choosen_tickets, remaining_tickets} =
-      Enum.reduce(player.tickets_to_choose, {[], []}, fn ticket, {to_choose, remaining} ->
-        if Enum.member?(choosen_ticket_ids, ticket.id) do
-          {to_choose ++ [ticket], remaining}
-        else
-          {to_choose, remaining ++ [ticket]}
-        end
-      end)
+      choose_tickets_by_id(tickets_to_choose, taken_tickets_ids)
 
     all_players_taken_tickets =
-      Enum.all?(players, fn {_k, player} ->
+      Enum.all?(players, fn {_name, player} ->
         Enum.count(player.tickets_to_choose) === 0 or player.name === player_name
       end)
 
@@ -190,10 +176,10 @@ defmodule ILikeTrains.Game do
       | players:
           Map.put(players, player_name, %Player{
             player
-            | tickets: choosen_tickets ++ player.tickets,
+            | tickets: choosen_tickets ++ tickets,
               tickets_to_choose: []
           }),
-        tickets: game.tickets ++ remaining_tickets
+        tickets: remaining_tickets ++ game_tickets
     }
 
     case {all_players_taken_tickets, state} do
@@ -207,25 +193,32 @@ defmodule ILikeTrains.Game do
     end
   end
 
+  defp choose_tickets_by_id(tickets, tickets_ids) do
+    Enum.reduce(tickets, {[], []}, fn ticket, {to_choose, remaining} ->
+      if Enum.member?(tickets_ids, ticket.id) do
+        {to_choose ++ [ticket], remaining}
+      else
+        {to_choose, remaining ++ [ticket]}
+      end
+    end)
+  end
+
   def request_tickets(%Game{players: players, turn: turn, tickets: tickets} = game) do
     {taken, remaining} = Ticket.take_n(tickets, @turn_tickets_num)
     current_player = Map.get(players, turn)
+    player_with_tickets = %Player{current_player | tickets_to_choose: taken}
 
     %Game{
       game
       | tickets: remaining,
-        players: Map.put(players, turn, %Player{current_player | tickets_to_choose: taken})
+        players: Map.put(players, turn, player_with_tickets)
     }
   end
 
   def count_points_for_tickets(players) do
-    Enum.reduce(players, %{}, fn {player_name,
-                                  %Player{
-                                    tickets: tickets,
-                                    connections: connections,
-                                    points: points
-                                  } = player},
-                                 acc ->
+    Enum.reduce(players, %{}, fn {player_name, player}, acc ->
+      %Player{tickets: tickets, connections: connections, points: points} = player
+
       tickets_points =
         Enum.reduce(tickets, 0, fn %Ticket{places: [from, to], points: ticket_points}, acc ->
           if Graph.are_connected?(connections, [from, to]) do

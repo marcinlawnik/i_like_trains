@@ -1,82 +1,120 @@
 <%
-    player = Map.get(@state.players, @name)
-    my_turn = @state.turn === @name
-    is_drawing_tickets = Enum.count(player.tickets_to_choose) > 0
-    can_draw = my_turn and !is_drawing_tickets
-    draw_cards_available = can_draw and @state.state !== "game_finished" and (Enum.count(@state.cards_deck) + Enum.count(@state.cards_board) >= 2)
-    draw_ticket_available = can_draw and @state.state === nil and Enum.count(@state.tickets) > 0
+  state_game_finished = "game_finished"
+  state_initial_tickets = "take_initial_tickets"
+  state_one_more_card = "one_more_card"
+  joker = "joker"
 
-    route_available = fn %{color: color, cost: cost, assignable: assignable} ->
-        case {my_turn, @state.state, assignable, Map.get(@available_cards, color) >= cost, player.trains >= cost, is_drawing_tickets} do
-            {true, nil, true, true, true, false} -> true
-            _ -> false
-        end
+  split_size = 20
+  padding = 7
+
+  position_shift = %{
+      "top" => {0, -padding},
+      "bottom" => {0, padding},
+      "left" => {-padding, 0},
+      "right" => {padding, 0},
+      "top-left" => {-padding, -padding},
+      "top-right" => {padding, -padding},
+      "bottom-left" => {-padding, padding},
+      "bottom-right" => {padding, padding},
+      nil => {0, 0}
+  }
+
+  direction_shift = %{
+      {true, false, false} => {-split_size, split_size},
+      {false, true, false} => {0, 0},
+      {false, false, true} => {split_size, -split_size}
+  }
+
+  %{
+      players: players,
+      turn: turn,
+      state: state,
+      routes: routes,
+      cards_deck: cards_deck,
+      cards_board: cards_board,
+      tickets: tickets,
+      places: places
+  } = @state
+
+  player = Map.get(players, @name)
+  %{cards: player_cards, tickets: player_tickets, tickets_to_choose: tickets_to_choose, trains: trains} = player
+
+  is_my_turn = turn === @name
+  is_drawing_tickets = Enum.count(tickets_to_choose) > 0
+
+  game_finished = state === state_game_finished
+  taking_initial_tickets = state === state_initial_tickets
+  can_draw_more_cards = Enum.count(cards_deck) + Enum.count(cards_board) >= 2 and !game_finished
+  can_draw = is_my_turn and !is_drawing_tickets
+  can_draw_tickets = can_draw and state === nil and Enum.count(tickets) > 0
+  can_draw_cards = can_draw and can_draw_more_cards
+
+  get_player_color = fn name -> Map.get(players, name).color end
+
+  route_available? = fn %{color: color, cost: cost, assignable: assignable} ->
+    case {is_my_turn, state, assignable, Map.get(@available_cards, color) >= cost, trains >= cost, is_drawing_tickets} do
+      {true, nil, true, true, true, false} -> true
+      _ -> false
     end
+  end
 
-    card_available = fn %{color: color} ->
-        case {my_turn, is_drawing_tickets, @state.state, color} do
-            {true, _, "one_more_card", "joker"} -> false
-            {true, false, "one_more_card", _} -> true
-            {true, false, nil, _} -> true
-            _ -> false
-        end
+  card_available? = fn %{color: color} ->
+    case {is_my_turn, is_drawing_tickets, state, color} do
+      {true, _, ^state_one_more_card, ^joker} -> false
+      {true, false, ^state_one_more_card, _} -> true
+      {true, false, nil, _} -> true
+      _ -> false
     end
+  end
 
-    position_shift = %{
-        "top" => {0,-7},
-        "bottom" => {0,7},
-        "left" => {-7,0},
-        "right" => {7,0},
-        "top-left" => {-7,-7},
-        "top-right" => {7,-7},
-        "bottom-left" => {-7,7},
-        "bottom-right" => {7,7},
-        nil => {0,0}
+  line_of_route = fn %{places: [from, to], cost: cost, position_shift: pos_shift} ->
+    %{x: x1, y: y1} = Map.get(places, from)
+    %{x: x2, y: y2} = Map.get(places, to)
+
+    {x_pos_shift, y_pos_shift} = Map.get(position_shift, pos_shift)
+    {x1_dir_shift, x2_dir_shift} = Map.get(direction_shift, {x1 > x2, x1 === x2, x1 < x2})
+    {y1_dir_shift, y2_dir_shift} = Map.get(direction_shift, {y1 > y2, y1 === y2, y1 < y2})
+
+    length =
+      Float.floor(
+        :math.pow(
+          :math.pow(x1 + x1_dir_shift - (x2 + x2_dir_shift), 2) +
+            :math.pow(y1 + y1_dir_shift - (y2 + y2_dir_shift), 2),
+          0.5
+        )
+      )
+
+    dasharray_size = Float.floor((length - (cost - 1) * split_size) / cost)
+    dasharray = List.duplicate(dasharray_size, cost) |> Enum.join(" #{split_size} ")
+
+    %{
+      x1: x1 + x_pos_shift + x1_dir_shift,
+      y1: y1 + y_pos_shift + y1_dir_shift,
+      x2: x2 + x_pos_shift + x2_dir_shift,
+      y2: y2 + y_pos_shift + y2_dir_shift,
+      dasharray: dasharray
     }
-
-    direction_shift = %{
-        {true, false, false} => {-20,20},
-        {false, true, false} => {0,0},
-        {false, false, true} => {20,-20}
-    }
-
-    line_of_route = fn %{places: [from, to], cost: cost, position_shift: pos_shift} ->
-        %{x: x1, y: y1} = Map.get(@state.places, from)
-        %{x: x2, y: y2} = Map.get(@state.places, to)
-
-        {x_pos_shift, y_pos_shift} = Map.get(position_shift, pos_shift)
-        {x1_dir_shift, x2_dir_shift} = Map.get(direction_shift, {x1 > x2, x1 === x2, x1 < x2})
-        {y1_dir_shift, y2_dir_shift} = Map.get(direction_shift, {y1 > y2, y1 === y2, y1 < y2})
-
-        length = Float.floor(:math.pow(:math.pow(x1+x1_dir_shift - (x2+x2_dir_shift), 2) + :math.pow(y1+y1_dir_shift - (y2+y2_dir_shift), 2), 0.5))
-        split_size = 20
-        dasharray_size = Float.floor((length - (cost-1) * split_size) / cost)
-        dasharray = List.duplicate(dasharray_size, cost) |> Enum.join(" #{split_size} ")
-
-        %{x1: x1+x_pos_shift+x1_dir_shift, y1: y1+y_pos_shift+y1_dir_shift, x2: x2+x_pos_shift+x2_dir_shift, y2: y2+y_pos_shift+y2_dir_shift, dasharray: dasharray}
-    end
-
-    player_color = fn name -> Map.get(@state.players, name).color end
+  end
 %>
 <div>
     <h1>Game</h1>
 
-    <%= if @state.state === "game_finished" do %>
+    <%= if game_finished do %>
         <div class="box">
             <p>players score</p>
-            <%= for %{name: name, points: points} <- Map.values(@state.players) do %>
+            <%= for {_, %{name: name, points: points}} <- players do %>
                 <p><%= name %> / <%= points %></p>
             <% end %>
             <button phx-click="leave_game">Leave game</button>
         </div>
     <% end %>
 
-    <%= if Enum.count(player.tickets_to_choose) > 0 do %>
+    <%= if is_drawing_tickets do %>
         <div class="box">
             <p>select your tickets</p>
-            <form phx-submit="<%= if @state.state === "take_initial_tickets" do "take_initial_tickets" else "take_tickets" end %>">
+            <form phx-submit="<%= if taking_initial_tickets do "take_initial_tickets" else "take_tickets" end %>">
                 <p>
-                    <%= for %{id: id, places: [from, to], points: points} <- player.tickets_to_choose do %>
+                    <%= for %{id: id, places: [from, to], points: points} <- tickets_to_choose do %>
                         <input type="checkbox" name="<%= id %>" value="true">
                         <%= from %>-<%= to %> | <%= points %>
                     <% end %>
@@ -89,27 +127,30 @@
         </div>
     <% end %>
 
-    <%= if @state.state === "take_initial_tickets" and Enum.count(player.tickets_to_choose) === 0 do %>
+    <%= if taking_initial_tickets and !is_drawing_tickets do %>
         <p>wait for other players</p>
     <% end %>
 
     <div class="board">
         <svg width="640" height="480">
-            <%= for %{id: id, assignable: assignable, assigned_to: assigned_to} = route <- @state.routes do %>
+            <%= for %{id: id, assignable: assignable, assigned_to: assigned_to} = route <- routes do %>
                 <% %{x1: x1, y1: y1, x2: x2, y2: y2, dasharray: dasharray} = line_of_route.(route) %>
                 <line
-                    <%= if route_available.(route) do %> phx-click="claim_route" <% end %>
+                    <%= if route_available?.(route) do %> phx-click="claim_route" <% end %>
                     phx-value-id="<%= id %>"
-                    class="line-<%= route.color %> <%= if !assignable and assigned_to === nil do "line-disabled" end %>" x1="<%= x1 %>" y1="<%= y1 %>" x2="<%= x2 %>" y2="<%= y2 %>" stroke-dasharray="<%= dasharray %>" stroke-width="15" />
+                    class="line-<%= route.color %> <%= if !assignable and assigned_to === nil do "line-disabled" end %>"
+                    x1="<%= x1 %>" y1="<%= y1 %>" x2="<%= x2 %>" y2="<%= y2 %>"
+                    stroke-dasharray="<%= dasharray %>" stroke-width="15" />
 
                 <%= if assigned_to !== nil do %>
-                    <line class="train-<%= player_color.(assigned_to) %>" x1="<%= x1 %>" y1="<%= y1 %>" x2="<%= x2 %>" y2="<%= y2 %>" stroke-dasharray="<%= dasharray %>" stroke-width="8" />
+                    <line class="train-<%= get_player_color.(assigned_to) %>"
+                    x1="<%= x1 %>" y1="<%= y1 %>" x2="<%= x2 %>" y2="<%= y2 %>"
+                    stroke-dasharray="<%= dasharray %>" stroke-width="8" />
                 <% end %>
-
             <% end %>
         </svg>
 
-        <%= for %{name: name, x: x, y: y} <- Map.values(@state.places) do %>
+        <%= for {_, %{name: name, x: x, y: y}} <- places do %>
             <div class="place" style="top:<%= y %>px;left:<%= x %>px;">
                 <span class="place-name"><%= name %></span>
             </div>
@@ -117,31 +158,21 @@
     </div>
 
     <div class="box">
-        <p>current turn - <%= @state.turn %></p>
-
-        <p>routes</p>
-        <%= for %{id: id, places: [from, to], color: color, cost: cost, assigned_to: assigned_to} = route <- @state.routes do %>
-            <button
-                phx-click="claim_route"
-                phx-value-id="<%= id %>"
-                <%= unless route_available.(route) do "disabled" end %>
-                >
-                    <%= from %>-<%= to %> | <%= color %> | <%= cost %> | <%= assigned_to %>
-            </button>
-        <% end %>
+        <p>current turn</p>
+        <span class="badge-<%= get_player_color.(turn) %>"><%= turn %></span>
 
         <p>cards on board</p>
         <button
             phx-click="take_card_deck"
-            <%= unless draw_cards_available do "disabled" end %>>
+            <%= unless can_draw_cards do "disabled" end %>>
                 draw from deck
         </button> |
-        <%= for {%{color: color} = card, index} <- Enum.with_index(@state.cards_board) do %>
+        <%= for {%{color: color} = card, index} <- Enum.with_index(cards_board) do %>
             <button
                 class="btn-<%= color %>"
                 phx-click="take_card_board"
                 phx-value-index="<%= index %>"
-                <%= unless card_available.(card) do "disabled" end %>
+                <%= unless card_available?.(card) do "disabled" end %>
                 >
                     <%= color %>
             </button>
@@ -151,20 +182,21 @@
     <hr>
 
     <div class="box">
-        <p>remaining trains: <%= player.trains %></p>
+        <span class="badge-<%= get_player_color.(@name) %>"><%= @name %></span>
+        <p>remaining trains: <%= trains %></p>
 
         <p>my cards</p>
-        <%= for %{color: color} <- player.cards do %>
+        <%= for %{color: color} <- player_cards do %>
             <button class="btn-<%= color %>"><%= color %></button>
         <% end %>
 
         <p>my tickets</p>
         <button
             phx-click="request_tickets"
-            <%= unless draw_ticket_available do "disabled" end %>>
+            <%= unless can_draw_tickets do "disabled" end %>>
                 draw tickets
         </button> |
-        <%= for %{places: [from, to], points: points} <- player.tickets do %>
+        <%= for %{places: [from, to], points: points} <- player_tickets do %>
             <button>
                 <%= from %>-<%= to %> | <%= points %>
             </button>

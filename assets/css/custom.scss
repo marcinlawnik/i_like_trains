@@ -58,12 +58,13 @@ $train: (
 
 @each $name, $color in $colors {
   .btn-#{$name} {
-    background: $color;
+    background-color: $color;
     border-color: $color;
     color: map-get($colors, "white");
 
-    &:hover {
-      background: map-get($colors-hovers, $name);
+    &:hover,
+    &[disabled]:hover {
+      background-color: map-get($colors-hovers, $name);
       border-color: map-get($colors-hovers, $name);
     }
   }
@@ -108,11 +109,28 @@ $train: (
   width: 20px;
   height: 20px;
   transform: translate(-10px, -10px);
-  background: map-get($colors, "black");
+  background-color: map-get($colors, "black");
 }
 
 .box {
   p {
     margin-bottom: 10px;
+  }
+}
+
+@each $name, $color in $train {
+  .badge-#{$name} {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+
+    &:before {
+      content: "";
+      display: inline-block;
+      width: 25px;
+      height: 15px;
+      margin-right: 5px;
+      background-color: $color;
+    }
   }
 }

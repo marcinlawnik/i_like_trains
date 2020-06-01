@@ -22,16 +22,29 @@ defmodule ILikeTrains.Route do
 
   def claim_route_by_player(
         routes,
-        %Route{id: claimed_route_id, places: [from, to]},
+        %Route{id: claimed_route_id},
         player_name,
         players_count
+      )
+      when players_count > @multi_routes_usable_above_player_num do
+    Enum.map(routes, fn %Route{id: route_id} = route ->
+      case route_id do
+        ^claimed_route_id -> %Route{route | assignable: false, assigned_to: player_name}
+        _ -> route
+      end
+    end)
+  end
+
+  def claim_route_by_player(
+        routes,
+        %Route{id: claimed_route_id, places: [from, to]},
+        player_name,
+        _
       ) do
     Enum.map(routes, fn %Route{id: route_id, places: [route_from, route_to]} = route ->
-      case {route_id, {route_from, route_to},
-            players_count > @multi_routes_usable_above_player_numd} do
-        {^claimed_route_id, _, _} -> %Route{route | assignable: false, assigned_to: player_name}
-        {_, {^from, ^to}, false} -> %Route{route | assignable: false}
-        {_, {^from, ^to}, true} -> route
+      case {route_id, {route_from, route_to}} do
+        {^claimed_route_id, _} -> %Route{route | assignable: false, assigned_to: player_name}
+        {_, {^from, ^to}} -> %Route{route | assignable: false}
         _ -> route
       end
     end)

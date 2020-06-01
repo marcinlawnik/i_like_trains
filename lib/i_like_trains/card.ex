@@ -32,41 +32,47 @@ defmodule ILikeTrains.Card do
     {rem_cards, rem_count} = remove_at_most_n_by_color(cards, color, n)
 
     if rem_count === 0 do
-      Enum.reverse(rem_cards)
+      rem_cards
     else
-      {rem_cards_after_jokers, _} = remove_at_most_n_by_color(Enum.reverse(rem_cards), @joker, n)
-      Enum.reverse(rem_cards_after_jokers)
+      {rem_cards_after_jokers, _} = remove_at_most_n_by_color(rem_cards, @joker, rem_count)
+      rem_cards_after_jokers
     end
   end
 
-  def remove_at_most_n_by_color(cards, color, n) do
-    {rem_cards, rem_count} =
-      Enum.reduce(cards, {[], n}, fn %Card{color: card_color} = card, {cards, count} ->
-        if count === 0 do
-          {[card | cards], 0}
-        else
-          case card_color do
-            ^color -> {cards, count - 1}
-            _ -> {[card | cards], count}
-          end
-        end
-      end)
+  def remove_at_most_n_by_color(cards, _color, 0), do: {cards, 0}
+  def remove_at_most_n_by_color([], _color, n), do: {[], n}
 
-    {rem_cards, rem_count}
+  def remove_at_most_n_by_color([%Card{color: card_color} = card | remaining], color, n) do
+    case card_color do
+      ^color ->
+        remove_at_most_n_by_color(remaining, color, n - 1)
+
+      _ ->
+        {remaining_cards, remaining_count} = remove_at_most_n_by_color(remaining, color, n)
+        {[card | remaining_cards], remaining_count}
+    end
   end
 
   def count_by_color(cards) do
-    count = Enum.map(@colors, fn color -> {color, 0} end) |> Map.new()
+    colors_count = Enum.map(@colors, fn color -> {color, 0} end) |> Map.new()
+    count_by_color(colors_count, cards)
+  end
 
-    Enum.reduce(cards, count, fn %Card{color: color}, cards_count ->
-      case color do
-        @joker ->
-          Map.new(Enum.map(cards_count, fn {col, val} -> {col, val + 1} end))
+  defp count_by_color(colors_count, []), do: colors_count
 
-        _ ->
-          val = Map.get(cards_count, color)
-          Map.put(cards_count, color, val + 1)
-      end
-    end)
+  defp count_by_color(colors_count, [%Card{color: color} | remaining_cards]) do
+    case color do
+      @joker ->
+        updated_colors_count =
+          Enum.map(colors_count, fn {col, val} -> {col, val + 1} end)
+          |> Map.new()
+
+        count_by_color(updated_colors_count, remaining_cards)
+
+      _ ->
+        val = Map.get(colors_count, color)
+        updated_colors_count = Map.put(colors_count, color, val + 1)
+        count_by_color(updated_colors_count, remaining_cards)
+    end
   end
 end
