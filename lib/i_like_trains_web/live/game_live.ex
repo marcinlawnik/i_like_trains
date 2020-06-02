@@ -11,14 +11,26 @@ defmodule ILikeTrainsWeb.GameLive do
 
   @impl true
   def mount(_params, %{"name" => name}, socket) do
-    # TODO: clause when name is not present in session -> redirect to login
-    ILikeTrainsWeb.Endpoint.subscribe(@topic)
-    state = GameServer.join(name)
+    case GameServer.join(name) do
+      {:ok, state} ->
+        ILikeTrainsWeb.Endpoint.subscribe(@topic)
+        pub_state(state)
 
-    pub_state(state)
+        {:ok,
+         socket
+         |> assign(%{state: state, name: name, available_cards: %{}, take_tickets_message: nil})}
 
-    {:ok,
-     assign(socket, %{state: state, name: name, available_cards: %{}, take_tickets_message: nil})}
+      {:error, _} ->
+        {:ok,
+         socket
+         |> put_flash(:info, "game already in progress - try again later")
+         |> redirect(to: Routes.page_path(ILikeTrainsWeb.Endpoint, :leave))}
+    end
+  end
+
+  @impl true
+  def mount(_params, _, socket) do
+    {:ok, redirect(socket, to: Routes.page_path(ILikeTrainsWeb.Endpoint, :index))}
   end
 
   @impl true

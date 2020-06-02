@@ -52,13 +52,16 @@ defmodule ILikeTrains.GameServer do
   @impl true
   def handle_call({:join, player_name}, _from, %Lobby{} = state) do
     new_state = Lobby.join(state, %Player{name: player_name})
-    {:reply, new_state, new_state}
+    {:reply, {:ok, new_state}, new_state}
   end
 
   @impl true
-  def handle_call({:join, _player}, _from, %Game{} = state) do
-    # TODO: check if player in game
-    {:reply, state, state}
+  def handle_call({:join, player_name}, _from, %Game{players: players} = state) do
+    if Map.has_key?(players, player_name) do
+      {:reply, {:ok, state}, state}
+    else
+      {:reply, {:error, %{}}, state}
+    end
   end
 
   @impl true
