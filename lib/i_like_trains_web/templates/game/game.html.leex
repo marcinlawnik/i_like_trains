@@ -47,7 +47,7 @@
   can_draw_more_cards = Enum.count(cards_deck) + Enum.count(cards_board) >= 2 and !game_finished
   can_draw = is_my_turn and !is_drawing_tickets
   can_draw_tickets = can_draw and state === nil and Enum.count(tickets) > 0
-  can_draw_cards = can_draw and can_draw_more_cards
+  can_draw_cards = can_draw and (state === nil or state === state_one_more_card) and can_draw_more_cards
 
   get_player_color = fn name -> Map.get(players, name).color end
 
