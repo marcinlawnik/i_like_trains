@@ -22,6 +22,10 @@ defmodule ILikeTrains.Lobby do
     end
   end
 
+  def not_ready(%Lobby{ready: ready, players: players} = lobby, %Player{name: name}) do
+    new_lobby = %Lobby{lobby | ready: MapSet.delete(ready, name)}
+  end
+
   def all_ready?(%Lobby{ready: ready, players: players}) do
     Enum.count(players) === MapSet.size(ready)
   end

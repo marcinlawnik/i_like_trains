@@ -1,14 +1,24 @@
+<%
+player = Map.get(@state.players, @name)
+%>
+
 <div>
     <h1>Lobby</h1>
+    <p>Hello, <%= player.name %></p>
     <%= for {name, _} <- @state.players do %>
         <p>
             <span><%= name %></span>
             <span>ready: <%= if Enum.any?(@state.ready, fn n -> n === name end) do "Ready" else "Not ready" end %></span>
         </p>
     <% end %>
-    <button phx-click="ready">ready</button>
 
-    <%= unless Enum.count(@state.players) > 1 do %>
+    <%= if Enum.any?(@state.ready, fn n -> n === player.name end ) do %>
+        <button phx-click="not_ready">not ready</button>
+    <% else %>
+        <button phx-click="ready">ready</button>
+    <% end %>
+
+    <%= unless Enum.count(@state.players) >= 2 do %>
     <div>
         You need at least 2 players to start the game.
     </div>
