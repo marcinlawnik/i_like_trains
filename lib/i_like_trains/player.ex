@@ -21,7 +21,7 @@ defmodule ILikeTrains.Player do
   def assign_colors(players) do
     {new_players, _} =
       Enum.reduce(players, {%{}, @player_colors}, fn {name, player}, {players_acc, colors} ->
-        [color | remaining_colors] = colors
+        [color | remaining_colors] = colors |> Enum.shuffle()
         new_players = Map.put(players_acc, name, %Player{player | color: color})
         {new_players, remaining_colors}
       end)
