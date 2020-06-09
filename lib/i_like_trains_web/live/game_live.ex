@@ -57,6 +57,13 @@ defmodule ILikeTrainsWeb.GameLive do
   end
 
   @impl true
+  def handle_event("not_ready", _, %{assigns: %{name: name}} = socket) do
+    new_state = GameServer.not_ready(name)
+    pub_state(new_state)
+    {:noreply, assign(socket, %{state: new_state})}
+  end
+
+  @impl true
   def handle_event("take_initial_tickets", params, %{assigns: %{name: name}} = socket) do
     take_tickets(params, name, @min_initial_tickets_num, socket)
   end

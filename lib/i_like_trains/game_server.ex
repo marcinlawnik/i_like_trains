@@ -18,6 +18,10 @@ defmodule ILikeTrains.GameServer do
     GenServer.call(GameServer, {:ready, player_name})
   end
 
+  def not_ready(player_name) do
+    GenServer.call(GameServer, {:not_ready, player_name})
+  end
+
   def take_card_board(index) do
     GenServer.call(GameServer, {:take_card_board, index})
   end
@@ -67,6 +71,12 @@ defmodule ILikeTrains.GameServer do
   @impl true
   def handle_call({:ready, player_name}, _from, %Lobby{} = state) do
     new_state = Lobby.ready(state, %Player{name: player_name})
+    {:reply, new_state, new_state}
+  end
+
+  @impl true
+  def handle_call({:not_ready, player_name}, _from, %Lobby{} = state) do
+    new_state = Lobby.not_ready(state, %Player{name: player_name})
     {:reply, new_state, new_state}
   end
 
