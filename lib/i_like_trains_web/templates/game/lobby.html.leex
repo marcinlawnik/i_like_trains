@@ -7,4 +7,11 @@
         </p>
     <% end %>
     <button phx-click="ready">ready</button>
+
+    <%= unless Enum.count(@state.players) > 1 do %>
+    <div>
+        You need at least 2 players to start the game.
+    </div>
+    <% end %>
+
 </div>

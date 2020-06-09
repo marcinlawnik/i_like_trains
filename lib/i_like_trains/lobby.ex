@@ -15,7 +15,7 @@ defmodule ILikeTrains.Lobby do
   def ready(%Lobby{ready: ready, players: players} = lobby, %Player{name: name}) do
     new_lobby = %Lobby{lobby | ready: MapSet.put(ready, name)}
 
-    if all_ready?(new_lobby) do
+    if minimum_players?(new_lobby) and all_ready?(new_lobby) do
       Game.new(players)
     else
       new_lobby
@@ -24,5 +24,9 @@ defmodule ILikeTrains.Lobby do
 
   def all_ready?(%Lobby{ready: ready, players: players}) do
     Enum.count(players) === MapSet.size(ready)
+  end
+
+  def minimum_players?(%Lobby{ready: ready, players: players}) do
+    Enum.count(players) >= 2
   end
 end
