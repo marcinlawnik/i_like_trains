@@ -34,7 +34,7 @@ defmodule ILikeTrains.Game do
       cards_board: cards_board,
       routes: Route.get_initial(),
       tickets: Ticket.get_initial(),
-      turn: List.first(Map.keys(players)),
+      turn: List.first(Enum.shuffle(Map.keys(players))),
       state: @state_initial_tickets
     }
     |> distribute_cards()
