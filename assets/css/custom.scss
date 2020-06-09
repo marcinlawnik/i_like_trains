@@ -131,8 +131,8 @@ $train: (
 
 @each $name, $color in $train {
   .badge-#{$name} {
-    display: flex;
-    align-items: center;
+    //display: flex;
+    //align-items: center;
     margin-bottom: 10px;
 
     &:before {
@@ -155,4 +155,12 @@ $train: (
   p {
     margin: 0 5px;
   }
+}
+
+.row {
+  display: flex;
+}
+
+.column {
+  flex: 50%;
 }
