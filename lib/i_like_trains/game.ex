@@ -20,7 +20,8 @@ defmodule ILikeTrains.Game do
             tickets: [],
             turn: nil,
             state: nil,
-            last_turn: nil
+            last_turn: nil,
+            log: []
 
   def new(players) do
     {cards_board, cards_deck} =
@@ -93,12 +94,14 @@ defmodule ILikeTrains.Game do
     current_player = Map.get(game.players, game.turn)
     player_with_card = %Player{current_player | cards: [card | current_player.cards]}
 
-    new_game = %Game{
-      game
-      | cards_deck: remaining_deck,
-        cards_board: new_cards_board,
-        players: Map.put(game.players, game.turn, player_with_card)
-    }
+    new_game =
+      %Game{
+        game
+        | cards_deck: remaining_deck,
+          cards_board: new_cards_board,
+          players: Map.put(game.players, game.turn, player_with_card)
+      }
+      |> append_log("took #{card.color} card from board")
 
     case {game.state, Card.is_joker?(card)} do
       {@state_one_more_card, _} ->
@@ -117,11 +120,13 @@ defmodule ILikeTrains.Game do
     current_player = Map.get(game.players, game.turn)
     player_with_card = %Player{current_player | cards: [new_card | current_player.cards]}
 
-    new_game = %Game{
-      game
-      | cards_deck: remaining_deck,
-        players: Map.put(game.players, game.turn, player_with_card)
-    }
+    new_game =
+      %Game{
+        game
+        | cards_deck: remaining_deck,
+          players: Map.put(game.players, game.turn, player_with_card)
+      }
+      |> append_log("took card from deck")
 
     case game.state do
       @state_one_more_card ->
@@ -134,7 +139,7 @@ defmodule ILikeTrains.Game do
 
   def claim_route(%Game{routes: routes, players: players, turn: turn} = game, route_id) do
     route = Enum.find(routes, fn %Route{id: id} -> id === route_id end)
-    %Route{places: places, color: color, cost: cost} = route
+    %Route{places: [from, to] = places, color: color, cost: cost} = route
 
     current_player = Map.get(players, turn)
     updated_cards = Card.remove_n_by_color(current_player.cards, color, cost)
@@ -152,7 +157,9 @@ defmodule ILikeTrains.Game do
     players_count = Enum.count(players)
     routes = Route.claim_route_by_player(routes, route, turn, players_count)
 
-    %Game{game | players: players, routes: routes} |> next_turn()
+    %Game{game | players: players, routes: routes}
+    |> append_log("claimed #{color} route from #{from} to #{to}")
+    |> next_turn()
   end
 
   def take_tickets(
@@ -166,21 +173,25 @@ defmodule ILikeTrains.Game do
     {choosen_tickets, remaining_tickets} =
       choose_tickets_by_id(tickets_to_choose, taken_tickets_ids)
 
+    choosen_tickets_num = Enum.count(choosen_tickets)
+
     all_players_taken_tickets =
       Enum.all?(players, fn {_name, player} ->
         Enum.count(player.tickets_to_choose) === 0 or player.name === player_name
       end)
 
-    new_game = %Game{
-      game
-      | players:
-          Map.put(players, player_name, %Player{
-            player
-            | tickets: choosen_tickets ++ tickets,
-              tickets_to_choose: []
-          }),
-        tickets: remaining_tickets ++ game_tickets
-    }
+    new_game =
+      %Game{
+        game
+        | players:
+            Map.put(players, player_name, %Player{
+              player
+              | tickets: choosen_tickets ++ tickets,
+                tickets_to_choose: []
+            }),
+          tickets: remaining_tickets ++ game_tickets
+      }
+      |> append_log("took #{choosen_tickets_num} tickets", player_name)
 
     case {all_players_taken_tickets, state} do
       # initial state = all players taken tickets
@@ -240,5 +251,13 @@ defmodule ILikeTrains.Game do
     else
       Lobby.new()
     end
+  end
+
+  defp append_log(%Game{log: log, turn: turn} = game, message) do
+    %Game{game | log: ["#{turn} #{message}" | log]}
+  end
+
+  defp append_log(%Game{log: log} = game, message, player_name) do
+    %Game{game | log: ["#{player_name} #{message}" | log]}
   end
 end
