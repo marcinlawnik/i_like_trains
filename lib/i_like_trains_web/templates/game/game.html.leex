@@ -118,28 +118,6 @@
         </div>
     <% end %>
 
-    <%= if is_drawing_tickets do %>
-        <div class="box">
-            <p>select your tickets</p>
-            <form phx-submit="<%= if taking_initial_tickets do "take_initial_tickets" else "take_tickets" end %>">
-                <p>
-                    <%= for %{id: id, places: [from, to], points: points} <- tickets_to_choose do %>
-                        <input type="checkbox" name="<%= id %>" value="true">
-                        <%= from %>-<%= to %> | <%= points %>
-                    <% end %>
-                </p>
-                <%= if @take_tickets_message !== nil do %>
-                    <p><%= @take_tickets_message %></p>
-                <% end %>
-                <button type="submit">choose tickets</button>
-            </form>
-        </div>
-    <% end %>
-
-    <%= if taking_initial_tickets and !is_drawing_tickets do %>
-        <p>wait for other players</p>
-    <% end %>
-
     <div class="board">
         <svg width="640" height="480">
             <%= for %{id: id, assignable: assignable, assigned_to: assigned_to} = route <- routes do %>
@@ -169,6 +147,12 @@
     <div class="box">
         <p>current turn</p>
         <span class="badge-<%= get_player_color.(turn) %>"><%= turn %></span>
+
+        <button
+            phx-click="request_tickets"
+            <%= unless can_draw_tickets do "disabled" end %>>
+                draw tickets
+        </button>
 
         <p>cards on board</p>
         <button
@@ -201,6 +185,29 @@
 
     <div class="box">
         <span class="badge-<%= get_player_color.(@name) %>"><%= @name %></span>
+
+        <%= if is_drawing_tickets do %>
+            <div class="box">
+                <p>select your tickets</p>
+                <form phx-submit="<%= if taking_initial_tickets do "take_initial_tickets" else "take_tickets" end %>">
+                    <p>
+                        <%= for %{id: id, places: [from, to], points: points} <- tickets_to_choose do %>
+                            <input type="checkbox" name="<%= id %>" value="true">
+                            <%= from %>-<%= to %> | <%= points %>
+                        <% end %>
+                    </p>
+                    <%= if @take_tickets_message !== nil do %>
+                        <p><%= @take_tickets_message %></p>
+                    <% end %>
+                    <button type="submit">choose tickets</button>
+                </form>
+            </div>
+        <% end %>
+
+        <%= if taking_initial_tickets and !is_drawing_tickets do %>
+            <p>Wait for other players to take their tickets!</p>
+        <% end %>
+
         <p>remaining trains: <%= trains %></p>
 
         <p>my cards</p>
@@ -209,11 +216,6 @@
         <% end %>
 
         <p>my tickets</p>
-        <button
-            phx-click="request_tickets"
-            <%= unless can_draw_tickets do "disabled" end %>>
-                draw tickets
-        </button> |
         <%= for %{places: [from, to], points: points} <- player_tickets do %>
             <button>
                 <%= from %>-<%= to %> | <%= points %>
