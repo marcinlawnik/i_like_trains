@@ -45,6 +45,7 @@ $train: (
 }
 
 .place-name {
+  white-space: nowrap;
   position: relative;
   padding: 0 8px;
   color: white;
