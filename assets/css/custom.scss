@@ -45,6 +45,7 @@ $train: (
 }
 
 .place-name {
+  white-space: nowrap;
   position: relative;
   padding: 0 8px;
   color: white;
@@ -81,15 +82,25 @@ $train: (
     &:hover {
       stroke: map-get($colors-hovers, $name);
     }
+
+    &.line-claimed {
+      stroke: $color;
+    }
   }
 }
 
-.line-disabled {
-  opacity: 0.5;
-  stroke: #353535;
+.line {
+  &-claimed {
+    opacity: 0.5;
+  }
 
-  &:hover {
+  &-disabled {
+    opacity: 0.5;
     stroke: #353535;
+
+    &:hover {
+      stroke: #353535;
+    }
   }
 }
 
@@ -132,5 +143,16 @@ $train: (
       margin-right: 5px;
       background-color: $color;
     }
+  }
+}
+
+.log {
+  border: 1px solid black;
+  height: 200px;
+  max-height: 200px;
+  overflow-y: scroll;
+
+  p {
+    margin: 0 5px;
   }
 }

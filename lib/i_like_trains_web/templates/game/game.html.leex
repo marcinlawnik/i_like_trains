@@ -5,7 +5,7 @@
   joker = "joker"
 
   split_size = 20
-  padding = 7
+  padding = 8
 
   position_shift = %{
       "top" => {0, -padding},
@@ -19,12 +19,6 @@
       nil => {0, 0}
   }
 
-  direction_shift = %{
-      {true, false, false} => {-split_size, split_size},
-      {false, true, false} => {0, 0},
-      {false, false, true} => {split_size, -split_size}
-  }
-
   %{
       players: players,
       turn: turn,
@@ -33,7 +27,8 @@
       cards_deck: cards_deck,
       cards_board: cards_board,
       tickets: tickets,
-      places: places
+      places: places,
+      log: log
   } = @state
 
   player = Map.get(players, @name)
@@ -50,6 +45,14 @@
   can_draw_cards = can_draw and (state === nil or state === state_one_more_card) and can_draw_more_cards
 
   get_player_color = fn name -> Map.get(players, name).color end
+
+  get_direction_shift = fn cord1, cord2 ->
+    cond do
+      cord1 > cord2 -> {-split_size, split_size}
+      cord1 === cord2 -> {0, 0}
+      cord1 < cord2 -> {split_size, -split_size}
+    end
+  end
 
   route_available? = fn %{color: color, cost: cost, assignable: assignable} ->
     case {is_my_turn, state, assignable, Map.get(@available_cards, color) >= cost, trains >= cost, is_drawing_tickets} do
@@ -72,8 +75,8 @@
     %{x: x2, y: y2} = Map.get(places, to)
 
     {x_pos_shift, y_pos_shift} = Map.get(position_shift, pos_shift)
-    {x1_dir_shift, x2_dir_shift} = Map.get(direction_shift, {x1 > x2, x1 === x2, x1 < x2})
-    {y1_dir_shift, y2_dir_shift} = Map.get(direction_shift, {y1 > y2, y1 === y2, y1 < y2})
+    {x1_dir_shift, x2_dir_shift} = get_direction_shift.(x1, x2)
+    {y1_dir_shift, y2_dir_shift} = get_direction_shift.(y1, y2)
 
     length =
       Float.floor(
@@ -109,28 +112,6 @@
         </div>
     <% end %>
 
-    <%= if is_drawing_tickets do %>
-        <div class="box">
-            <p>select your tickets</p>
-            <form phx-submit="<%= if taking_initial_tickets do "take_initial_tickets" else "take_tickets" end %>">
-                <p>
-                    <%= for %{id: id, places: [from, to], points: points} <- tickets_to_choose do %>
-                        <input type="checkbox" name="<%= id %>" value="true">
-                        <%= from %>-<%= to %> | <%= points %>
-                    <% end %>
-                </p>
-                <%= if @take_tickets_message !== nil do %>
-                    <p><%= @take_tickets_message %></p>
-                <% end %>
-                <button type="submit">choose tickets</button>
-            </form>
-        </div>
-    <% end %>
-
-    <%= if taking_initial_tickets and !is_drawing_tickets do %>
-        <p>wait for other players</p>
-    <% end %>
-
     <div class="board">
         <svg width="640" height="480">
             <%= for %{id: id, assignable: assignable, assigned_to: assigned_to} = route <- routes do %>
@@ -138,7 +119,7 @@
                 <line
                     <%= if route_available?.(route) do %> phx-click="claim_route" <% end %>
                     phx-value-id="<%= id %>"
-                    class="line-<%= route.color %> <%= if !assignable and assigned_to === nil do "line-disabled" end %>"
+                    class="line-<%= route.color %> <%= if !assignable and assigned_to === nil do "line-disabled" end %> <%= if assigned_to !== nil do "line-claimed" end %>"
                     x1="<%= x1 %>" y1="<%= y1 %>" x2="<%= x2 %>" y2="<%= y2 %>"
                     stroke-dasharray="<%= dasharray %>" stroke-width="15" />
 
@@ -161,6 +142,12 @@
         <p>current turn</p>
         <span class="badge-<%= get_player_color.(turn) %>"><%= turn %></span>
 
+        <button
+            phx-click="request_tickets"
+            <%= unless can_draw_tickets do "disabled" end %>>
+                draw tickets
+        </button>
+
         <p>cards on board</p>
         <button
             phx-click="take_card_deck"
@@ -179,10 +166,42 @@
         <% end %>
     </div>
 
+    <div class="box">
+        <p>game log</p>
+        <div class="log">
+            <%= for msg <- log do %>
+                <p><%= msg %></p>
+            <% end %>
+        </div>
+    </div>
+
     <hr>
 
     <div class="box">
         <span class="badge-<%= get_player_color.(@name) %>"><%= @name %></span>
+
+        <%= if is_drawing_tickets do %>
+            <div class="box">
+                <p>select your tickets</p>
+                <form phx-submit="<%= if taking_initial_tickets do "take_initial_tickets" else "take_tickets" end %>">
+                    <p>
+                        <%= for %{id: id, places: [from, to], points: points} <- tickets_to_choose do %>
+                            <input type="checkbox" name="<%= id %>" value="true">
+                            <%= from %>-<%= to %> | <%= points %>
+                        <% end %>
+                    </p>
+                    <%= if @take_tickets_message !== nil do %>
+                        <p><%= @take_tickets_message %></p>
+                    <% end %>
+                    <button type="submit">choose tickets</button>
+                </form>
+            </div>
+        <% end %>
+
+        <%= if taking_initial_tickets and !is_drawing_tickets do %>
+            <p>Wait for other players to take their tickets!</p>
+        <% end %>
+
         <p>remaining trains: <%= trains %></p>
 
         <p>my cards</p>
@@ -191,11 +210,6 @@
         <% end %>
 
         <p>my tickets</p>
-        <button
-            phx-click="request_tickets"
-            <%= unless can_draw_tickets do "disabled" end %>>
-                draw tickets
-        </button> |
         <%= for %{places: [from, to], points: points} <- player_tickets do %>
             <button>
                 <%= from %>-<%= to %> | <%= points %>
