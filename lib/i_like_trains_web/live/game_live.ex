@@ -6,7 +6,7 @@ defmodule ILikeTrainsWeb.GameLive do
   @topic "pub_sub_game_topic"
   @state_update "state_update"
 
-  @min_initial_tickets_num 2
+  @min_initial_tickets_num 1
   @min_turn_tickets_num 1
 
   @impl true

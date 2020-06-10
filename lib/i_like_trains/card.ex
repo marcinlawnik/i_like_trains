@@ -3,10 +3,20 @@ defmodule ILikeTrains.Card do
 
   defstruct color: nil
 
-  @colors ["pink", "white", "blue", "yellow", "orange", "black", "red", "green"]
+  #In New York version there is no , "yellow" and "white"
+  #This needs to be customizable in MapConfig
+  @colors ["pink", "blue", "orange", "black", "red", "green"]
   @joker "joker"
+  #44 cards total minus 8 jokers, divided evenly by 6 colors
+  @color_num 6
+  #According to the russian manual
+  #https://boardgamegeek.com/filepage/191779/russian-rules-russkie-pravila
+  #8 многоцветных такси-джокеров
+  #8 mnohocvyetnych taksi-dżokerow
+  @joker_num 8
+  #For demo purposes, lets double the deck size
   @color_num 12
-  @joker_num 14
+  @joker_num 16
 
   def new_deck() do
     cards =

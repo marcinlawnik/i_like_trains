@@ -5,6 +5,7 @@
   joker = "joker"
 
   split_size = 20
+  dir_shift = 10
   padding = 8
 
   position_shift = %{
@@ -48,9 +49,9 @@
 
   get_direction_shift = fn cord1, cord2 ->
     cond do
-      cord1 > cord2 -> {-split_size, split_size}
+      cord1 > cord2 -> {-dir_shift, dir_shift}
       cord1 === cord2 -> {0, 0}
-      cord1 < cord2 -> {split_size, -split_size}
+      cord1 < cord2 -> {dir_shift, -dir_shift}
     end
   end
 
@@ -91,10 +92,10 @@
     dasharray = List.duplicate(dasharray_size, cost) |> Enum.join(" #{split_size} ")
 
     %{
-      x1: x1 + x_pos_shift + x1_dir_shift,
-      y1: y1 + y_pos_shift + y1_dir_shift,
-      x2: x2 + x_pos_shift + x2_dir_shift,
-      y2: y2 + y_pos_shift + y2_dir_shift,
+      x1: x1 + x_pos_shift, # + x1_dir_shift
+      y1: y1 + y_pos_shift, # + y1_dir_shift
+      x2: x2 + x_pos_shift ,#+ x2_dir_shift
+      y2: y2 + y_pos_shift ,#+ y2_dir_shift
       dasharray: dasharray
     }
   end
@@ -116,7 +117,7 @@
               <% end %>
 
               <div class="board">
-                  <svg width="640" height="480">
+                  <svg width="640" height="640">
                       <%= for %{id: id, assignable: assignable, assigned_to: assigned_to} = route <- routes do %>
                           <% %{x1: x1, y1: y1, x2: x2, y2: y2, dasharray: dasharray} = line_of_route.(route) %>
                           <line
@@ -124,7 +125,7 @@
                               phx-value-id="<%= id %>"
                               class="line-<%= route.color %> <%= if !assignable and assigned_to === nil do "line-disabled" end %> <%= if assigned_to !== nil do "line-claimed" end %>"
                               x1="<%= x1 %>" y1="<%= y1 %>" x2="<%= x2 %>" y2="<%= y2 %>"
-                              stroke-dasharray="<%= dasharray %>" stroke-width="15" />
+                              stroke-dasharray="<%= dasharray %>" stroke-width="12" />
 
                           <%= if assigned_to !== nil do %>
                               <line class="train-<%= get_player_color.(assigned_to) %>"
@@ -140,15 +141,6 @@
                       </div>
                   <% end %>
               </div>
-
-                <div class="box">
-                    <p>game log</p>
-                    <div class="log">
-                        <%= for msg <- log do %>
-                            <p><%= msg %></p>
-                        <% end %>
-                    </div>
-                </div>
 
           </div>
 
@@ -181,7 +173,7 @@
                       </button>
                   <% end %>
               </div>
-              <hr>
+              <div style="border-bottom: 2px solid black; margin: 4px"></div>
               <div class="box">
                   <p><span class="badge-<%= get_player_color.(@name) %>"><%= @name %></span></p>
 
@@ -220,6 +212,15 @@
                           <%= from %>-<%= to %> | <%= points %>
                       </button>
                   <% end %>
+          </div>
+
+          <div class="box">
+              <p>game log</p>
+              <div class="log">
+                  <%= for msg <- log do %>
+                      <p><%= msg %></p>
+                  <% end %>
+              </div>
           </div>
         </div>
     </div>
