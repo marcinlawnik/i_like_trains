@@ -4,8 +4,7 @@
   state_one_more_card = "one_more_card"
   joker = "joker"
 
-  split_size = 20
-  dir_shift = 10
+  split_size = 15
   padding = 8
 
   position_shift = %{
@@ -49,9 +48,9 @@
 
   get_direction_shift = fn cord1, cord2 ->
     cond do
-      cord1 > cord2 -> {-dir_shift, dir_shift}
+      cord1 > cord2 -> {-split_size, split_size}
       cord1 === cord2 -> {0, 0}
-      cord1 < cord2 -> {dir_shift, -dir_shift}
+      cord1 < cord2 -> {split_size, -split_size}
     end
   end
 
@@ -92,10 +91,10 @@
     dasharray = List.duplicate(dasharray_size, cost) |> Enum.join(" #{split_size} ")
 
     %{
-      x1: x1 + x_pos_shift, # + x1_dir_shift
-      y1: y1 + y_pos_shift, # + y1_dir_shift
-      x2: x2 + x_pos_shift ,#+ x2_dir_shift
-      y2: y2 + y_pos_shift ,#+ y2_dir_shift
+      x1: x1 + x_pos_shift + x1_dir_shift,
+      y1: y1 + y_pos_shift + y1_dir_shift,
+      x2: x2 + x_pos_shift + x2_dir_shift,
+      y2: y2 + y_pos_shift + y2_dir_shift,
       dasharray: dasharray
     }
   end
@@ -173,9 +172,11 @@
                       </button>
                   <% end %>
               </div>
-              <div style="border-bottom: 2px solid black; margin: 4px"></div>
+
+              <hr>
+
               <div class="box">
-                  <p><span class="badge-<%= get_player_color.(@name) %>"><%= @name %></span></p>
+                  <p>I am <span class="badge-<%= get_player_color.(@name) %>"><%= @name %></span></p>
 
                   <%= if is_drawing_tickets do %>
                       <div class="box">
