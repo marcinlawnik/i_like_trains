@@ -156,7 +156,7 @@
           <div class="column">
               <div class="box">
                   <p>current turn</p>
-                  <span class="badge-<%= get_player_color.(turn) %>"><%= turn %></span>
+                  <p><span class="badge-<%= get_player_color.(turn) %>"><%= turn %></span></p>
 
                   <button
                       phx-click="request_tickets"
@@ -183,7 +183,7 @@
               </div>
               <hr>
               <div class="box">
-                  <div>I am:  <span class="badge-<%= get_player_color.(@name) %>"><%= @name %></span></div>
+                  <p><span class="badge-<%= get_player_color.(@name) %>"><%= @name %></span></p>
 
                   <%= if is_drawing_tickets do %>
                       <div class="box">
