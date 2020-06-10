@@ -1,13 +1,13 @@
 defmodule ILikeTrainsWeb.GameLive do
-  alias ILikeTrains.{GameServer, Lobby, Game, Card}
+  alias ILikeTrains.{GameServer, Lobby, Game, Card, MapConfig}
 
   use ILikeTrainsWeb, :live_view
 
   @topic "pub_sub_game_topic"
   @state_update "state_update"
 
-  @min_initial_tickets_num 2
-  @min_turn_tickets_num 1
+  @min_initial_tickets_num MapConfig.min_initial_tickets_num_data()
+  @min_turn_tickets_num MapConfig.min_turn_tickets_num_data()
 
   @impl true
   def mount(_params, %{"name" => name}, socket) do

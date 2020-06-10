@@ -1,12 +1,13 @@
 defmodule ILikeTrains.Card do
   alias __MODULE__
+  alias ILikeTrains.MapConfig
 
   defstruct color: nil
 
-  @colors ["pink", "white", "blue", "yellow", "orange", "black", "red", "green"]
+  @colors MapConfig.colors_data()
+  @color_num MapConfig.color_num_data()
+  @joker_num MapConfig.joker_num_data()
   @joker "joker"
-  @color_num 12
-  @joker_num 14
 
   def new_deck() do
     cards =

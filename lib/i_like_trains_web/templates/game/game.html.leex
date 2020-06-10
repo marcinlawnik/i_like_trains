@@ -4,7 +4,7 @@
   state_one_more_card = "one_more_card"
   joker = "joker"
 
-  split_size = 20
+  split_size = 15
   padding = 8
 
   position_shift = %{
@@ -116,7 +116,7 @@
               <% end %>
 
               <div class="board">
-                  <svg width="640" height="480">
+                  <svg width="640" height="640">
                       <%= for %{id: id, assignable: assignable, assigned_to: assigned_to} = route <- routes do %>
                           <% %{x1: x1, y1: y1, x2: x2, y2: y2, dasharray: dasharray} = line_of_route.(route) %>
                           <line
@@ -124,7 +124,7 @@
                               phx-value-id="<%= id %>"
                               class="line-<%= route.color %> <%= if !assignable and assigned_to === nil do "line-disabled" end %> <%= if assigned_to !== nil do "line-claimed" end %>"
                               x1="<%= x1 %>" y1="<%= y1 %>" x2="<%= x2 %>" y2="<%= y2 %>"
-                              stroke-dasharray="<%= dasharray %>" stroke-width="15" />
+                              stroke-dasharray="<%= dasharray %>" stroke-width="12" />
 
                           <%= if assigned_to !== nil do %>
                               <line class="train-<%= get_player_color.(assigned_to) %>"
@@ -140,15 +140,6 @@
                       </div>
                   <% end %>
               </div>
-
-                <div class="box">
-                    <p>game log</p>
-                    <div class="log">
-                        <%= for msg <- log do %>
-                            <p><%= msg %></p>
-                        <% end %>
-                    </div>
-                </div>
 
           </div>
 
@@ -181,9 +172,11 @@
                       </button>
                   <% end %>
               </div>
+
               <hr>
+
               <div class="box">
-                  <p><span class="badge-<%= get_player_color.(@name) %>"><%= @name %></span></p>
+                  <p>I am <span class="badge-<%= get_player_color.(@name) %>"><%= @name %></span></p>
 
                   <%= if is_drawing_tickets do %>
                       <div class="box">
@@ -220,6 +213,15 @@
                           <%= from %>-<%= to %> | <%= points %>
                       </button>
                   <% end %>
+          </div>
+
+          <div class="box">
+              <p>game log</p>
+              <div class="log">
+                  <%= for msg <- log do %>
+                      <p><%= msg %></p>
+                  <% end %>
+              </div>
           </div>
         </div>
     </div>

@@ -2,8 +2,8 @@ defmodule ILikeTrains.Player do
   alias __MODULE__
   alias ILikeTrains.{Graph, MapConfig}
 
-  @initial_train_num 10
-  @player_colors ["red", "blue", "yellow", "green", "black"]
+  @initial_train_num MapConfig.initial_train_num_data()
+  @player_colors MapConfig.player_colors_data()
 
   defstruct name: "",
             color: "",
