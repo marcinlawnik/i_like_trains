@@ -2,13 +2,11 @@ defmodule ILikeTrains.Game do
   alias __MODULE__
   alias ILikeTrains.{Lobby, Card, Player, Route, Ticket, Graph, MapConfig}
 
-  #Changed according to https://boardgamegeek.com/filepage/188066/ticket-ride-reference-guide
-  #For NY version
-  @cards_on_hand_num 2
-  @cards_on_board_num 5
-  @initial_tickets_num 2
-  @turn_tickets_num 2
-  @points_for_trains %{1 => 1, 2 => 2, 3 => 4, 4 => 7, 5 => 10, 6 => 15}
+  @cards_on_hand_num MapConfig.cards_on_hand_num_data()
+  @cards_on_board_num MapConfig.cards_on_board_num_data()
+  @initial_tickets_num MapConfig.initial_tickets_num_data()
+  @turn_tickets_num MapConfig.turn_tickets_num_data()
+  @points_for_trains MapConfig.points_for_trains_data()
 
   @state_one_more_card "one_more_card"
   @state_initial_tickets "take_initial_tickets"
